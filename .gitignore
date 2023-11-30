@@ -1,0 +1,21 @@
+# Copyright (C) 2022-2023 Xu Ruijun
+#
+# Copying and distribution of this gitignore file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+# build file
+/obj/
+__pycache__/
+
+# vscode
+/.vscode
+
+# vim
+*.swp
+
+# emacs
+*~
+\#*#
+.#*
