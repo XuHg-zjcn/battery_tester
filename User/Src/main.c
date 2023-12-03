@@ -20,10 +20,15 @@
 #include "stm32f1xx_ll_rcc.h"
 #include "stm32f1xx_ll_bus.h"
 #include "stm32f1xx_ll_gpio.h"
+#include "stm32f1xx_ll_usart.h"
 #include "mos_pwm.h"
+#include "adc.h"
+#include "usart.h"
 
 #define LED1_GPIO_PORT GPIOC
 #define LED1_PIN       LL_GPIO_PIN_13
+
+uint16_t data[2];
 
 void SystemClock_Config(void);
 
@@ -32,18 +37,26 @@ void delay_count(volatile int x)
   while(x--);
 }
 
-void main()
+void LED_Init()
 {
-  SystemClock_Config();
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOC);
   LL_GPIO_SetPinMode(LED1_GPIO_PORT, LED1_PIN, LL_GPIO_MODE_OUTPUT);
   LL_GPIO_ResetOutputPin(LED1_GPIO_PORT, LED1_PIN);
+}
 
+void main()
+{
+  SystemClock_Config();
   MOS_Init();
+  LED_Init();
+  USART_Init();
+  ADC_Init();
   while(1){
     for(int i=0;i<4096;i++){
       MOS_Set(i);
-      delay_count(100);
+      ADC_GetData(data);
+      USART_Send((uint8_t *)data, 4);
+      delay_count(1000);
     }
   }
 }
