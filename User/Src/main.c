@@ -28,7 +28,7 @@
 #define LED1_GPIO_PORT GPIOC
 #define LED1_PIN       LL_GPIO_PIN_13
 
-uint16_t data[2];
+uint16_t data[3];
 
 void SystemClock_Config(void);
 
@@ -51,11 +51,12 @@ void main()
   LED_Init();
   USART_Init();
   ADC_Init();
+  data[0] = 65535;
   while(1){
     for(int i=0;i<4096;i++){
       MOS_Set(i);
-      ADC_GetData(data);
-      USART_Send((uint8_t *)data, 4);
+      ADC_GetData(data+1);
+      USART_Send((uint8_t *)data, 6);
       delay_count(1000);
     }
   }
