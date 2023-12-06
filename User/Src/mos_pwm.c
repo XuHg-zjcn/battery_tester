@@ -20,8 +20,13 @@
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_tim.h"
 
-#define PWM_GPIO_PORT  GPIOA
-#define PWM_PIN        LL_GPIO_PIN_7
+#define PWM_GPIO_PORT          GPIOA
+#define PWM_PIN                LL_GPIO_PIN_15
+
+#define TIMx_PWM               TIM2
+#define NAMECONN_PWM_TIMx(x)   x##3
+#define LL_TIM_CHANNEL_CHx_PWM LL_TIM_CHANNEL_CH1
+#define NAMECONN_PWM_CHx(x)    x##1
 
 void MOS_Init()
 {
@@ -30,16 +35,19 @@ void MOS_Init()
   LL_GPIO_SetPinPull(PWM_GPIO_PORT, PWM_PIN, LL_GPIO_PULL_UP);
   LL_GPIO_SetPinSpeed(PWM_GPIO_PORT, PWM_PIN, LL_GPIO_SPEED_FREQ_LOW);
 
-  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM3);
-  LL_TIM_SetAutoReload(TIM3, 4096-1);
-  LL_TIM_OC_SetCompareCH2(TIM3, 4096);
-  LL_TIM_OC_SetMode(TIM3, LL_TIM_CHANNEL_CH2, LL_TIM_OCMODE_PWM1);
-  LL_TIM_OC_ConfigOutput(TIM3, LL_TIM_CHANNEL_CH2, LL_TIM_OCPOLARITY_HIGH | LL_TIM_OCIDLESTATE_HIGH);
-  LL_TIM_CC_EnableChannel(TIM3, LL_TIM_CHANNEL_CH2);
-  LL_TIM_EnableCounter(TIM3);
+  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_AFIO);
+  LL_GPIO_AF_EnableRemap_TIM2();
+
+  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM2);
+  LL_TIM_SetAutoReload(TIMx_PWM, 4096-1);
+  LL_TIM_OC_SetCompareCH2(TIMx_PWM, 4096);
+  LL_TIM_OC_SetMode(TIMx_PWM, LL_TIM_CHANNEL_CHx_PWM, LL_TIM_OCMODE_PWM1);
+  LL_TIM_OC_ConfigOutput(TIMx_PWM, LL_TIM_CHANNEL_CHx_PWM, LL_TIM_OCPOLARITY_HIGH | LL_TIM_OCIDLESTATE_HIGH);
+  LL_TIM_CC_EnableChannel(TIMx_PWM, LL_TIM_CHANNEL_CHx_PWM);
+  LL_TIM_EnableCounter(TIMx_PWM);
 }
 
 void MOS_Set(uint16_t x)
 {
-  LL_TIM_OC_SetCompareCH2(TIM3, x);
+  NAMECONN_PWM_CHx(LL_TIM_OC_SetCompareCH)(TIMx_PWM, x);
 }
