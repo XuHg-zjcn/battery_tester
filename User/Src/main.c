@@ -24,11 +24,25 @@
 #include "mos_pwm.h"
 #include "adc.h"
 #include "usart.h"
+#include "pid.h"
 
 #define LED1_GPIO_PORT GPIOC
 #define LED1_PIN       LL_GPIO_PIN_13
 
 uint16_t data[3];
+
+PID_stat pid = {
+  .p_smin = 10*1000,
+  .p_smax = 10*4095,
+  .p_emin = -500,
+  .p_emax = 1000,
+  .p_k = 0.1*(1ULL<<32),
+
+  .i_k = 0.1*(1ULL<<32),
+
+  .out_min = 1000,
+  .out_max = 4095,
+};
 
 void SystemClock_Config(void);
 
@@ -50,15 +64,14 @@ void main()
   MOS_Init();
   LED_Init();
   USART_Init();
+  PID_Init(&pid, -400, 4000);
   ADC_Init();
   data[0] = 65535;
   while(1){
-    for(int i=0;i<4096;i++){
-      MOS_Set(i);
-      ADC_GetData(data+1);
-      USART_Send((uint8_t *)data, 6);
-      delay_count(1000);
-    }
+    ADC_GetData(data+1);
+    MOS_Set(PID_update(&pid, ((int32_t)data[2])-400));
+    USART_Send((uint8_t *)data, 6);
+    delay_count(1000);
   }
 }
 
