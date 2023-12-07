@@ -52,7 +52,7 @@ CXXFLAGS += -Wall#                #开启所有警告
 COMFLAGS += -Wunused#             #开启无用变量警告
 COMFLAGS += -Wuninitialized#      #开启无初始化警告
 COMFLAGS += -DSTM32F103xB#        #定义型号宏供HAL库使用
-COMFLAGS += -DCH32V103x8#         #定义真实型号宏
+COMFLAGS += -DCH32V203x8#         #定义真实型号宏
 #COMFLAGS += -g#                  #调试
 
 CCFLAGS := $(COMFLAGS)
@@ -66,7 +66,7 @@ CXXFLAGS += -Os#                  #最小文件大小优化
 ASMFLAGS := $(COMFLAGS)
 
 LDFLAGS := $(COMFLAGS)
-LDFLAGS += -T Drivers/CH32V103_Init/LDScript/ch32v103x8.ld#     #链接器脚本
+LDFLAGS += -T Drivers/CH32V203_Init/LDScript/ch32v203x8.ld#     #链接器脚本
 LDFLAGS += -nostartfiles#        #不用标准启动文件
 LDFLAGS += -Xlinker#             #
 LDFLAGS += --gc-sections#        #删除无用sections
@@ -76,7 +76,7 @@ LDFLAGS += --specs=nosys.specs
 
 OCDFLAGS += -f $(OCD_CFG)
 
-WLINKFLAGS += --chip CH32V103
+WLINKFLAGS += --chip CH32V203
 
 CSRC ?= $(wildcard ${DIR}/*.c)
 CPPSRC ?= $(wildcard ${DIR}/*.cpp)
