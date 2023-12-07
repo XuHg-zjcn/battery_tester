@@ -2,6 +2,7 @@
 #include "pid.h"
 
 PID_stat pid = {
+  .p_stat = 10*2000,
   .p_smin = 10*1000,
   .p_smax = 10*4095,
   .p_emin = -500,
@@ -16,7 +17,7 @@ PID_stat pid = {
 
 int main()
 {
-  PID_Init(&pid, -400, 4000);
+  //PID_Init(&pid, -400, 4000);
   for(int i=0;i<100;i++){
   printf("%d,", PID_update(&pid, -400));
   }

@@ -1,5 +1,5 @@
 /*************************************************************************
- *  用于电池测试仪的串口驱动程序
+ *  电池测试仪命令解析
  *  Copyright (C) 2023  Xu Ruijun
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -15,12 +15,32 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *************************************************************************/
-#ifndef USART_H
-#define USART_H
+#include "command.h"
 
-#include <stdint.h>
+#define ARRLEN(x)          (sizeof(x)/sizeof(x[0]))
+#define CAST_U8ARR(x)      ((uint8_t *)(x))
+#define READU16_UNALIGN(x) (CAST_U8ARR(x)[0] + ((CAST_U8ARR(x)[1])<<8))
 
-void USART_Init();
-void USART_Send(const uint8_t *data, uint32_t length);
+volatile TestMode mode;
+volatile uint16_t paras[3];
 
-#endif
+void ExecCmd(uint8_t *buff)
+{
+  uint8_t *end = buff+buff[0];
+  buff++;
+  while(buff < end){
+    switch((CommandType)buff[0]){
+    case Cmd_SetMode:
+      mode = buff[1];
+      buff += 2;
+      break;
+    case Cmd_SetPara:
+      if(buff[1] < ARRLEN(paras))
+        paras[buff[1]] = READU16_UNALIGN(&buff[2]);
+      buff += 4;
+      break;
+    default:
+      return;
+    }
+  }
+}
