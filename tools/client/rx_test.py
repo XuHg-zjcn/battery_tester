@@ -40,6 +40,12 @@ def get_serial():
     ser = serial.Serial(devpath, 115200)
     return ser
 
+def adc2si_calib(volt, curr):
+    curr_A = curr*conf.A_LSB
+    volt_V = volt*conf.V_LSB
+    volt_V_calib = volt_V + curr_A*conf.R_Line
+    return volt_V_calib, curr_A
+
 class DataViewControl:
     def __init__(self, ui, dev, NCH, Nhist, Ntmp=10):
         self.ui = ui
@@ -64,10 +70,9 @@ class DataViewControl:
         self.data[:,-1] = newdata
         if self.running:
             ts = time.monotonic()
-            volt = newdata[0]
-            curr = newdata[1]
-            power = volt*curr
-            self.sum_Q += (ts-self.last)*curr
+            volt_V_calib, curr_A = adc2si_calib(newdata[0], newdata[1])
+            power = volt_V_calib*curr_A
+            self.sum_Q += (ts-self.last)*curr_A
             self.sum_E += (ts-self.last)*power
             self.last = ts
 
@@ -80,8 +85,7 @@ class DataViewControl:
         volt = int(self.data[0, -1])
         curr = int(self.data[1, -1])
         if not isRAW:
-            volt *= conf.V_LSB
-            curr *= conf.A_LSB
+            volt, curr = adc2si_calib(volt, curr)
         power = volt*curr
         fmt = '{}' if isRAW else '{:.3f}'
         self.ui.lineEdit_Volt_curr.setText(fmt.format(volt))
@@ -91,9 +95,9 @@ class DataViewControl:
             Q = self.sum_Q/3600
             E = self.sum_E/3600
             fmt = '{:.0f}' if isRAW else '{:.3f}'
-            if not isRAW:
-                Q *= conf.A_LSB
-                E *= conf.A_LSB * conf.V_LSB
+            if isRAW:
+                Q /= conf.A_LSB
+                E /= conf.A_LSB * conf.V_LSB
             self.ui.lineEdit_Qu_curr.setText(fmt.format(Q))
             self.ui.lineEdit_Ene_curr.setText(fmt.format(E))
             total_time_str = str(datetime.timedelta(seconds=int(self.last-self.start)))
@@ -118,12 +122,15 @@ class DataViewControl:
         s1 = self.ui.lineEdit_Volt_limit.text()
         s2 = self.ui.lineEdit_Curr_limit.text()
         if isRAW:
-            stop_vmin = int(s1)
-            curr = int(s2)
+            stop_vmin_adc = int(s1)
+            curr_adc = int(s2)
         else:
-            stop_vmin = round(float(s1)/conf.V_LSB)
-            curr = round(float(s2)/conf.A_LSB)
-        self.dev.set_para(curr, stop_vmin)
+            stop_vmin_V_calib = float(s1)
+            curr_A = float(s2)
+            curr_adc = round(curr_A/conf.A_LSB)
+            stop_vmin_V_samp = stop_vmin_V_calib - curr_A*conf.R_Line
+            stop_vmin_adc = round(stop_vmin_V_samp/conf.V_LSB)
+        self.dev.set_para(curr_adc, stop_vmin_adc)
 
     def pushButton_startstop_clicked(self):
         if self.running:
