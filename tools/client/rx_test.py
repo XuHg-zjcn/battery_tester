@@ -47,23 +47,31 @@ def adc2si_calib(volt, curr):
     return volt_V_calib, curr_A
 
 class DataViewControl:
-    def __init__(self, ui, dev, NCH, Nhist, Ntmp=10):
+    def __init__(self, ui, dev, NCH, Nhist):
         self.ui = ui
         self.dev = dev
         self.NCH = NCH
         self.Nhist = Nhist
-        self.Ntmp = Ntmp
         self.data = np.zeros((NCH, Nhist), dtype=np.uint16)
+        self.mean_V = list()
+        self.mean_A = list()
         self.curves = [ui.plotwidget.plot() for i in range(NCH)]
-        self.i = 0
+        self.ri = 0
         self.running = False
         self.sum_Q = 0
         self.sum_E = 0
         self.start = None
         self.last = None
+        self.timer_plot = pg.QtCore.QTimer()
+        self.timer_plot.timeout.connect(self.update_wave)  # 定时刷新数据显示
+        self.timer_plot.start(50)  # 多少ms调用一次
+        self.timer_value = pg.QtCore.QTimer()
+        self.timer_value.timeout.connect(self.update_showvalue)
+        self.timer_value.start(100)
         self.ui.checkBox_raw.stateChanged.connect(self.checkBox_raw_stateChanged)
         self.ui.pushButton_startstop.clicked.connect(self.pushButton_startstop_clicked)
         self.ui.pushButton_updatelimit.clicked.connect(self.pushButton_updatelimit_clicked)
+        self.ui.comboBox_show.currentIndexChanged.connect(self.comboBox_show_changed)
 
     def update(self, newdata):
         self.data[:,:-1] = self.data[:,1:]
@@ -75,10 +83,21 @@ class DataViewControl:
             self.sum_Q += (ts-self.last)*curr_A
             self.sum_E += (ts-self.last)*power
             self.last = ts
+            self.ri += 1
+            if self.ri % 1000 == 0:
+                mean_volt_adc = self.data[0,-1000:].mean()
+                mean_curr_adc = self.data[1,-1000:].mean()
+                mean_volt_V_calib, mean_curr_A = adc2si_calib(mean_volt_adc, mean_curr_adc)
+                self.mean_V.append(mean_volt_V_calib)
+                self.mean_A.append(mean_curr_A)
 
-    def update_plot(self):
+    def update_wave(self):
         for i in range(self.NCH):
             self.curves[i].setData(self.data[i])
+
+    def update_curve(self):
+        self.curves[0].setData(self.mean_V)
+        self.curves[1].setData(self.mean_A)
 
     def update_showvalue(self):
         isRAW = self.ui.checkBox_raw.isChecked()
@@ -135,6 +154,7 @@ class DataViewControl:
     def pushButton_startstop_clicked(self):
         if self.running:
             self.dev.set_mode(cmd.Mode_Stop)
+            #TODO: 询问是否清除数据
             self.running = False
             self.ui.pushButton_startstop.setText('点击开始')
         else:
@@ -144,6 +164,21 @@ class DataViewControl:
             self.last = ts
             self.running = True
             self.ui.pushButton_startstop.setText('点击停止')
+
+    def comboBox_show_changed(self, index):
+        if index == 0:
+            self.timer_plot.stop()
+            self.timer_plot.timeout.disconnect(self.update_curve)
+            self.timer_plot.timeout.connect(self.update_wave)
+            self.timer_plot.setInterval(50)
+            self.timer_plot.start()
+        elif index == 1:
+            self.timer_plot.stop()
+            self.timer_plot.timeout.disconnect(self.update_wave)
+            self.timer_plot.timeout.connect(self.update_curve)
+            self.timer_plot.setInterval(200)
+            self.timer_plot.start()
+
 
 class Device(QThread):
     def __init__(self, ser):
@@ -184,11 +219,5 @@ if __name__ == '__main__':
     dvc = DataViewControl(ui, dev, NCH=NCH, Nhist=Nhist)
     dev.dvc = dvc
     dev.start()
-    timer_plot = pg.QtCore.QTimer()
-    timer_plot.timeout.connect(dvc.update_plot)  # 定时刷新数据显示
-    timer_plot.start(50)  # 多少ms调用一次
-    timer_value = pg.QtCore.QTimer()
-    timer_value.timeout.connect(dvc.update_showvalue)
-    timer_value.start(100)
     win.show()
     app.exec()

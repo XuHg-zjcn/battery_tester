@@ -256,6 +256,39 @@
      <string>模式</string>
     </property>
    </widget>
+   <widget class="QComboBox" name="comboBox_show">
+    <property name="geometry">
+     <rect>
+      <x>650</x>
+      <y>320</y>
+      <width>191</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>实时波形</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>放电曲线</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QLabel" name="label_show">
+    <property name="geometry">
+     <rect>
+      <x>610</x>
+      <y>320</y>
+      <width>31</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>显示</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
