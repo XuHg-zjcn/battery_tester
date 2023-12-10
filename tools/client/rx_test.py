@@ -40,11 +40,17 @@ def get_serial():
     ser = serial.Serial(devpath, 115200)
     return ser
 
-def adc2si_calib(volt, curr):
-    curr_A = curr*conf.A_LSB
-    volt_V = volt*conf.V_LSB
-    volt_V_calib = volt_V + curr_A*conf.R_Line
+def adc2si_calib(volt_adc, curr_adc):
+    curr_A = curr_adc*conf.A_LSB + conf.A_bias
+    volt_V_samp = volt_adc*conf.V_LSB + conf.V_bias
+    volt_V_calib = volt_V_samp + curr_A*conf.R_Line
     return volt_V_calib, curr_A
+
+def si2adc_calib(volt_V, curr_A):
+    curr_adc = (curr_A - conf.A_bias)/conf.A_LSB
+    volt_V_samp = volt_V - curr_A*conf.R_Line
+    volt_adc = (volt_V_samp - conf.V_bias)/conf.V_LSB
+    return volt_adc, curr_adc
 
 class DataViewControl:
     def __init__(self, ui, dev, NCH, Nhist):
@@ -144,11 +150,11 @@ class DataViewControl:
             stop_vmin_adc = int(s1)
             curr_adc = int(s2)
         else:
-            stop_vmin_V_calib = float(s1)
+            stop_vmin_V = float(s1)
             curr_A = float(s2)
-            curr_adc = round(curr_A/conf.A_LSB)
-            stop_vmin_V_samp = stop_vmin_V_calib - curr_A*conf.R_Line
-            stop_vmin_adc = round(stop_vmin_V_samp/conf.V_LSB)
+            stop_vmin_adc, curr_adc = si2adc_calib(stop_vmin_V, curr_A)
+            stop_vmin_adc = round(stop_vmin_adc)
+            curr_adc = round(curr_adc)
         self.dev.set_para(curr_adc, stop_vmin_adc)
 
     def pushButton_startstop_clicked(self):
