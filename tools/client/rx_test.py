@@ -26,7 +26,7 @@ import time
 import pyqtgraph as pg
 import numpy as np
 from PyQt6.QtCore import QThread
-from PyQt6.QtWidgets import QApplication, QMainWindow
+from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox
 
 from main_window import Ui_MainWindow
 import conf
@@ -53,21 +53,26 @@ def si2adc_calib(volt_V, curr_A):
     return volt_adc, curr_adc
 
 class DataViewControl:
-    def __init__(self, ui, dev, NCH, Nhist):
-        self.ui = ui
+    def __init__(self, win, dev, NCH, Nhist):
+        self.win = win
         self.dev = dev
         self.NCH = NCH
         self.Nhist = Nhist
-        self.data = np.zeros((NCH, Nhist), dtype=np.uint16)
         self.mean_V = list()
         self.mean_A = list()
-        self.curves = [ui.plotwidget.plot() for i in range(NCH)]
         self.ri = 0
         self.running = False
         self.sum_Q = 0
         self.sum_E = 0
-        self.start = None
-        self.last = None
+        self.t0 = None  #用于计算已运行时间
+        self.t_last = None  #最后一次数据时间或开始时间
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(win)
+        self.ui.plotwidget.showGrid(x=True, y=True)
+        self.ui.plotwidget.setRange(xRange=[0, Nhist], yRange=[0, 4095], padding=0)
+        self.ui.plotwidget.setTitle('串口数据')
+        self.data = np.zeros((NCH, Nhist), dtype=np.uint16)
+        self.curves = [self.ui.plotwidget.plot() for i in range(NCH)]
         self.timer_plot = pg.QtCore.QTimer()
         self.timer_plot.timeout.connect(self.update_wave)  # 定时刷新数据显示
         self.timer_plot.start(50)  # 多少ms调用一次
@@ -86,9 +91,9 @@ class DataViewControl:
             ts = time.monotonic()
             volt_V_calib, curr_A = adc2si_calib(newdata[0], newdata[1])
             power = volt_V_calib*curr_A
-            self.sum_Q += (ts-self.last)*curr_A
-            self.sum_E += (ts-self.last)*power
-            self.last = ts
+            self.sum_Q += (ts-self.t_last)*curr_A
+            self.sum_E += (ts-self.t_last)*power
+            self.t_last = ts
             self.ri += 1
             if self.ri % 1000 == 0:
                 mean_volt_adc = self.data[0,-1000:].mean()
@@ -125,7 +130,7 @@ class DataViewControl:
                 E /= conf.A_LSB * conf.V_LSB
             self.ui.lineEdit_Qu_curr.setText(fmt.format(Q))
             self.ui.lineEdit_Ene_curr.setText(fmt.format(E))
-            total_time_str = str(datetime.timedelta(seconds=int(self.last-self.start)))
+            total_time_str = str(datetime.timedelta(seconds=int(self.t_last-self.t0)))
             self.ui.lineEdit_Time_curr.setText(total_time_str)
 
     def checkBox_raw_stateChanged(self, state):
@@ -159,17 +164,42 @@ class DataViewControl:
 
     def pushButton_startstop_clicked(self):
         if self.running:
-            self.dev.set_mode(cmd.Mode_Stop)
-            #TODO: 询问是否清除数据
-            self.running = False
-            self.ui.pushButton_startstop.setText('点击开始')
+            self.stop()
         else:
-            self.dev.set_mode(cmd.Mode_ConsCurr)
-            ts = time.monotonic()
-            self.start = ts
-            self.last = ts
-            self.running = True
-            self.ui.pushButton_startstop.setText('点击停止')
+            if self.t0 is not None:
+                ret = QMessageBox.question(self.win, '准备开始', '是否清除上次数据',
+                        QMessageBox.StandardButton.Yes|QMessageBox.StandardButton.No,
+                        QMessageBox.StandardButton.No)
+                if ret == QMessageBox.StandardButton.Yes:
+                    self.start_clean_data()
+                else:
+                     self.start_no_clean()
+            else:
+                self.start_clean_data()
+
+    def start_clean_data(self):
+        self.mean_V = []
+        self.mean_A = []
+        self.sum_Q = 0
+        self.sum_E = 0
+        self.dev.set_mode(cmd.Mode_ConsCurr)
+        ts = time.monotonic()
+        self.t0 = ts
+        self.t_last = ts
+        self.running = True
+        self.ui.pushButton_startstop.setText('停止/暂停')
+
+    def start_no_clean(self):
+        self.dev.set_mode(cmd.Mode_ConsCurr)
+        ts = time.monotonic()
+        self.t0 += ts - self.t_last
+        self.running = True
+        self.ui.pushButton_startstop.setText('停止/暂停')
+
+    def stop(self):
+        self.dev.set_mode(cmd.Mode_Stop)
+        self.running = False
+        self.ui.pushButton_startstop.setText('开始/恢复')
 
     def comboBox_show_changed(self, index):
         if index == 0:
@@ -216,13 +246,8 @@ if __name__ == '__main__':
     ser = get_serial()
     app = QApplication([])
     win = QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(win)
-    ui.plotwidget.showGrid(x=True, y=True)
-    ui.plotwidget.setRange(xRange=[0, Nhist], yRange=[0, 4095], padding=0)
-    ui.plotwidget.setTitle('串口数据')
     dev = Device(ser)
-    dvc = DataViewControl(ui, dev, NCH=NCH, Nhist=Nhist)
+    dvc = DataViewControl(win, dev, NCH=NCH, Nhist=Nhist)
     dev.dvc = dvc
     dev.start()
     win.show()
