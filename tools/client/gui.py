@@ -48,8 +48,13 @@ class DataViewControl:
         self.ui.comboBox_show.currentIndexChanged.connect(self.comboBox_show_changed)
 
     def update_wave(self):
-        for i in range(NCH):
-            self.curves[i].setData(self.rec.data[i])
+        if self.ui.checkBox_raw.isChecked():
+            for i in range(NCH):
+                self.curves[i].setData(self.rec.data[i])
+        else:
+            wave_V, wave_A = self.dev.adc2si_calib(self.rec.data[0], self.rec.data[1])
+            self.curves[0].setData(wave_V)
+            self.curves[1].setData(wave_A)
 
     def update_curve(self):
         self.curves[0].setData(self.rec.mean_V)
