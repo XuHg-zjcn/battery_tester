@@ -16,7 +16,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #########################################################################
+import struct
+import datetime
 import time
+import gzip
 import numpy as np
 
 
@@ -33,13 +36,18 @@ class Recorder:
         self.t0 = None  #用于计算已运行时间
         self.t_last = None  #最后一次数据时间或开始时间
         self.data = np.zeros((2, Nhist), dtype=np.uint16)
+        fn = datetime.datetime.now().strftime('%Y%m%d_%H%M%S') + '.dat.gz'
+        self.f = gzip.open(fn, 'wb')
+        #TODO: 保存完整EOF，避免读取时错误
+        #TODO: 分次测试数据分别保存到不同文件
 
     def update(self, volt_adc, curr_adc):
+        ts_ns = time.monotonic_ns()
         self.data[:,:-1] = self.data[:,1:]
         self.data[:,-1] = (volt_adc, curr_adc)
         volt_V, curr_A = self.dev.adc2si_calib(volt_adc, curr_adc)
         if self.running:
-            ts = time.monotonic()
+            ts = ts_ns / 1e9
             volt_V_calib, curr_A = self.dev.adc2si_calib(volt_adc, curr_adc)
             power = volt_V_calib*curr_A
             self.sum_Q += (ts-self.t_last)*curr_A
@@ -52,6 +60,8 @@ class Recorder:
                 mean_volt_V_calib, mean_curr_A = self.dev.adc2si_calib(mean_volt_adc, mean_curr_adc)
                 self.mean_V.append(mean_volt_V_calib)
                 self.mean_A.append(mean_curr_A)
+        data = struct.pack('QHH', ts_ns, volt_adc, curr_adc)
+        self.f.write(data)
 
     def clean(self):
         self.running = False
