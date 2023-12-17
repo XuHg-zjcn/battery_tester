@@ -17,9 +17,30 @@
  *************************************************************************/
 #include "pid.h"
 
-#define I32xU32_HI32(a, b) ((((int64_t)(a))*(b))>>32)
-#define I64xU32_HI64(a, b) (I32xU32_HI32(((a)&0xffffffff), b) + (((a)>>32)*(b)))
-#define I32dU32_QSI64(a, b) ((((int64_t)(a))<<32)/(b))
+inline int32_t I32xU32_HI32(int32_t a, uint32_t b)
+{
+  return (((int64_t)a)*b)>>32;
+}
+
+inline int64_t I64xU32_HI64(int64_t a, uint32_t b)
+{
+  int32_t alxb_h = I32xU32_HI32(a&0xffffffff, b);
+  int64_t ahxb = ((a>>32))*b;
+  return ahxb + alxb_h;
+}
+
+inline int32_t I64xU32_MI32(uint64_t a, uint32_t b)
+{
+  int32_t alxb_h = I32xU32_HI32(a&0xffffffff, b);
+  int32_t ahxb_l = (int32_t)((a>>32)*b);
+  return ahxb_l + alxb_h;
+}
+
+inline int64_t I32dU32_QSI64(int32_t a, uint32_t b)
+{
+  int64_t a_ls32 = ((int64_t)a)<<32;
+  return a_ls32/b;
+}
 
 #define MIN(a, b)     (((a)<(b))?(a):(b))
 #define MAX(a, b)     (((a)>(b))?(a):(b))
@@ -54,16 +75,16 @@ int32_t PID_update(PID_stat *pid, int32_t err)
   }
   diff = pid->df_stat>>32;
 #endif
-  output += I64xU32_HI64(diff, pid->d_k);
+  output += I64xU32_MI32(diff, pid->d_k);
   err_last = err;
 #endif
 
 #if PID_P_EN
-  int32_t curr_p = I64xU32_HI64(pid->p_stat, pid->p_k);
+  int32_t curr_p = I64xU32_MI32(pid->p_stat, pid->p_k);
   if((err < 0 && output+curr_p > pid->out_min) || (err > 0 && output+curr_p < pid->out_max)){
     int32_t dp = CLIP(err, pid->p_emin, pid->p_emax);
     pid->p_stat = CLIP(pid->p_stat+dp, pid->p_smin, pid->p_smax);
-    output += I64xU32_HI64(pid->p_stat, pid->p_k);
+    output += I64xU32_MI32(pid->p_stat, pid->p_k);
   }else{
     output += curr_p;
   }
