@@ -34,25 +34,20 @@
 uint16_t data[3];
 
 PID_stat pid = {
-  .p_stat = 10*4096,
-  .p_smin = 10*1000,
-  .p_smax = 10*4096,
-  .p_emin = -100,
+  .p_stat = 1000*4096,
+  .p_smin = 1000*1000,
+  .p_smax = 1000*4096,
+  .p_emin = -1000,
   .p_emax = 1000,
-  .p_k = 0.1*(1ULL<<32),
+  .p_k = 0.001*(1ULL<<32),
 
-  .i_k = 0.1*(1ULL<<32),
+  .i_k = 0.007*(1ULL<<32),
 
-  .out_min = 1000,
+  .out_min = 100,
   .out_max = 4096,
 };
 
 void SystemClock_Config(void);
-
-void delay_count(volatile int x)
-{
-  while(x--);
-}
 
 void LED_Init()
 {
@@ -71,17 +66,6 @@ void main()
   ADC_Init();
   data[0] = 65535;
   while(1){
-    ADC_GetData(data+1);
-    if(data[1] <= stop_vmin){
-      mode = Mode_Stop;
-    }
-    if(mode == Mode_ConsCurr){
-      MOS_Set(PID_update(&pid, (int32_t)data[2]-curr));
-    }else{
-      MOS_Set(4096);
-    }
-    USART_Send((uint8_t *)data, 6);
-    delay_count(1000);
   }
 }
 

@@ -19,23 +19,12 @@
 #include "stm32f1xx_ll_bus.h"
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_usart.h"
-#include "ch32v_systick.h"
-#include "command.h"
+#include "stm32f1xx_ll_dma.h"
 
-#define GPIO_PORT_USART        GPIOA
-#define LL_GPIO_PIN_USART_TX   LL_GPIO_PIN_9
-#define LL_GPIO_PIN_USART_RX   LL_GPIO_PIN_10
 
-#define USART_PC               USART1
-#define USART_PC_IRQn          53
-
-static const uint8_t cmdhead[4] = {0xAA, 'C', 'M', 'D'};
-static uint64_t usart_rx_last_ts = 0; //接收到最后一个字节的时间戳
-static uint32_t cmd_i = 0;
-
-uint8_t buff[32];
-
-void USART1_IRQHandler(void) __attribute__((interrupt()));
+DMAQueue_item usart_txqueue[4];
+volatile int32_t usart_tx_begin = -1; //下一个发送任务,-1表示空
+volatile int32_t usart_tx_end = 0; //任务尾部+1
 
 void USART_Init()
 {
@@ -51,9 +40,26 @@ void USART_Init()
   LL_USART_SetTransferDirection(USART_PC, LL_USART_DIRECTION_TX_RX);
   LL_USART_ConfigCharacter(USART_PC, LL_USART_DATAWIDTH_8B, LL_USART_PARITY_NONE, LL_USART_STOPBITS_1);
   LL_USART_SetBaudRate(USART_PC, SystemCoreClock, 115200);
+  LL_USART_EnableDMAReq_TX(USART_PC);
 
-  NVIC_EnableIRQ(USART_PC_IRQn);
+  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA1);
+  LL_DMA_ConfigTransfer(DMA1,
+                        LL_DMA_CHANNEL_4,
+                        LL_DMA_DIRECTION_MEMORY_TO_PERIPH |
+                        LL_DMA_MODE_CIRCULAR              |
+                        LL_DMA_PERIPH_NOINCREMENT         |
+                        LL_DMA_MEMORY_INCREMENT           |
+                        LL_DMA_PDATAALIGN_BYTE            |
+                        LL_DMA_MDATAALIGN_BYTE            |
+                        LL_DMA_PRIORITY_MEDIUM);
+  LL_DMA_SetPeriphAddress(DMA1, LL_DMA_CHANNEL_4, LL_USART_DMA_GetRegAddr(USART1));
+  NVIC_SetPriority(DMA1_Channel4_IRQn, 0);
+  LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_4);
+
+  NVIC_SetPriority(DMA1_Channel4_IRQn, 1);
   NVIC_SetPriority(USART_PC_IRQn, 1);
+  NVIC_EnableIRQ(DMA1_Channel4_IRQn);
+  NVIC_EnableIRQ(USART_PC_IRQn);
 
   LL_USART_EnableIT_RXNE(USART_PC);
   LL_USART_Enable(USART_PC);
@@ -61,38 +67,17 @@ void USART_Init()
 
 void USART_Send(const uint8_t *data, uint32_t length)
 {
-  while(length--){
-    while(!LL_USART_IsActiveFlag_TXE(USART_PC));
-    LL_USART_TransmitData8(USART_PC, *data++);
+  NVIC_DisableIRQ(DMA1_Channel4_IRQn);
+  if(!LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_4) && usart_tx_begin == -1){
+    LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNEL_4, (uint32_t)&data[0]);
+    LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_4, length);
+    LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_4);
+  }else{
+    while(usart_tx_begin != usart_tx_end);
+    int i = (usart_tx_begin < 0)?0:usart_tx_end;
+    usart_txqueue[i].addr = (uint32_t)data;
+    usart_txqueue[i].size = length;
+    usart_tx_end = (i+1)%ARR_NELEM(usart_txqueue);
   }
-}
-
-void USART1_IRQHandler(void)
-{
-  if(LL_USART_IsActiveFlag_RXNE(USART_PC)){
-    uint8_t byte = LL_USART_ReceiveData8(USART_PC);
-    uint64_t now = SysTick_GetSafe();
-    if(cmd_i < 0 && now - usart_rx_last_ts > 72/8*5000){
-      cmd_i = 0;
-    }
-    if(cmd_i >= 0){
-      if(cmd_i < 4){
-	if(byte == cmdhead[cmd_i]){
-	  cmd_i++;
-	}else{
-	  //不匹配，标记为错误
-	  cmd_i = 0;
-	}
-      }else{
-	buff[cmd_i-4] = byte;
-	if(cmd_i-4 >= buff[0]){
-	  cmd_i = 0;
-	  ExecCmd(buff);
-	}else{
-	  cmd_i++;
-	}
-      }
-    }
-    usart_rx_last_ts = now;
-  }
+  NVIC_EnableIRQ(DMA1_Channel4_IRQn);
 }

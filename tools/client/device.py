@@ -56,7 +56,7 @@ class Device(QThread):
                 print('rxerr')
                 continue
             volt_adc, curr_adc = values[1:]
-            self.rec.update(volt_adc, curr_adc)
+            self.rec.update(curr_adc, volt_adc)
 
     def adc2si_calib(self, volt_adc, curr_adc):
         curr_A = curr_adc*conf.A_LSB + conf.A_bias
