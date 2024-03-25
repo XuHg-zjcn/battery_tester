@@ -16,8 +16,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ##########################################################################
 
-sinclude $(TOP_DIR)/tools/inc.mk
-sinclude $(TOP_DIR)/tools/src.mk
+sinclude $(TOOL_DIR)/inc.mk
+sinclude $(TOOL_DIR)/src.mk
 
 
 CSRC = $(shell find $(SDIR) -name '*.c' | awk -F '_' '{if($$(NF)!="template.c")print $$0}')

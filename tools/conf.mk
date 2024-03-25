@@ -16,7 +16,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #############################################################################
 
-sinclude $(TOP_DIR)/tools/config.mk
+sinclude $(TOOL_DIR)/config.mk
+
+VERBOSE = YES
 
 ifeq ($(VERBOSE),YES)
 	ASM     = $(TOOL_CHAIN)gcc
@@ -66,7 +68,7 @@ CXXFLAGS += -Os#                  #最小文件大小优化
 ASMFLAGS := $(COMFLAGS)
 
 LDFLAGS := $(COMFLAGS)
-LDFLAGS += -T Drivers/CH32V203_Init/LDScript/ch32v203x8.ld#     #链接器脚本
+LDFLAGS += -T $(DEV_DIR)/LDScript/ch32v203x8.ld#     #链接器脚本
 LDFLAGS += -nostartfiles#        #不用标准启动文件
 LDFLAGS += -Xlinker#             #
 LDFLAGS += --gc-sections#        #删除无用sections

@@ -17,9 +17,7 @@
 #############################################################################
 
 #请看README.md如何安装和使用
-#TOOL_CHAIN = "/home/xrj/.local/riscv/bin/riscv32-unknown-elf-"
-#TOOL_CHAIN = "riscv-none-elf-"
-TOOL_CHAIN = "/home/xrj/dlprogram/MRS_Toolchain_Linux_x64_V1.80/RISC-V Embedded GCC/bin/riscv-none-embed-"
+TOOL_CHAIN = riscv32-unknown-elf-
 
 OPENOCD = openocd
 OCD_CFG =
