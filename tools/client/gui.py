@@ -22,6 +22,7 @@ from PyQt6.QtWidgets import QMessageBox
 
 from main_window import Ui_MainWindow
 import command as cmd
+import conf
 
 NCH = 2
 
