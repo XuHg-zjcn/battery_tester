@@ -24,40 +24,17 @@
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_startstop">
-    <property name="geometry">
-     <rect>
-      <x>770</x>
-      <y>370</y>
-      <width>80</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>点击开始</string>
-    </property>
-   </widget>
    <widget class="QCheckBox" name="checkBox_raw">
     <property name="geometry">
      <rect>
-      <x>610</x>
-      <y>250</y>
+      <x>600</x>
+      <y>240</y>
       <width>81</width>
       <height>24</height>
      </rect>
     </property>
     <property name="text">
      <string>原始ADC值</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="comboBox_mode">
-    <property name="geometry">
-     <rect>
-      <x>650</x>
-      <y>290</y>
-      <width>191</width>
-      <height>26</height>
-     </rect>
     </property>
    </widget>
    <widget class="QWidget" name="gridLayoutWidget">
@@ -230,64 +207,109 @@
      </item>
     </layout>
    </widget>
-   <widget class="QPushButton" name="pushButton_updatelimit">
+   <widget class="QWidget" name="horizontalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>670</x>
-      <y>380</y>
-      <width>80</width>
-      <height>26</height>
+      <x>679</x>
+      <y>341</y>
+      <width>161</width>
+      <height>82</height>
      </rect>
     </property>
-    <property name="text">
-     <string>更新限值</string>
-    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QPushButton" name="pushButton_UpdateLimit">
+         <property name="text">
+          <string>更新限值</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_PauseResume">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>暂停</string>
+         </property>
+         <property name="checkable">
+          <bool>false</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="autoExclusive">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_StartStop">
+       <property name="minimumSize">
+        <size>
+         <width>60</width>
+         <height>70</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>点击开始</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
-   <widget class="QLabel" name="label_mode">
+   <widget class="QWidget" name="formLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>610</x>
-      <y>290</y>
-      <width>31</width>
-      <height>18</height>
+      <x>600</x>
+      <y>268</y>
+      <width>241</width>
+      <height>61</height>
      </rect>
     </property>
-    <property name="text">
-     <string>模式</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="comboBox_show">
-    <property name="geometry">
-     <rect>
-      <x>650</x>
-      <y>320</y>
-      <width>191</width>
-      <height>26</height>
-     </rect>
-    </property>
-    <item>
-     <property name="text">
-      <string>实时波形</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>放电曲线</string>
-     </property>
-    </item>
-   </widget>
-   <widget class="QLabel" name="label_show">
-    <property name="geometry">
-     <rect>
-      <x>610</x>
-      <y>320</y>
-      <width>31</width>
-      <height>18</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>显示</string>
-    </property>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_mode">
+       <property name="text">
+        <string>模式</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QComboBox" name="comboBox_mode"/>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_show">
+       <property name="text">
+        <string>显示</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="comboBox_show">
+       <item>
+        <property name="text">
+         <string>实时波形</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>放电曲线</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

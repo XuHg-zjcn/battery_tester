@@ -42,7 +42,7 @@ obj/%.o: %.S
 	$(ASM) $(ASMFLAGS) $(INCS) -c -o "$@" "$<"
 
 $(TARGET).elf: $(OBJF)
-	$(LINK) $(LDFLAGS) -o "$@" $^
+	$(CXX) $(LDFLAGS) -o "$@" $^
 
 $(TARGET).hex: $(TARGET).elf
 	$(OBJCOPY) -O ihex "$<" "$@"
