@@ -1,6 +1,6 @@
 /*************************************************************************
  *  电池测试仪中断函数文件
- *  Copyright (C) 2023  Xu Ruijun
+ *  Copyright (C) 2023-2024  Xu Ruijun
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,8 +34,12 @@ void DMA1_Channel4_IRQHandler(void) __attribute__((interrupt()));
 
 extern uint16_t adc_dma_buff[32*2];
 extern PID_stat pid;
-static uint32_t update_count = 0;
+extern const int32_t I_offset, U_offset;
+
+uint32_t update_count = 0;
 static uint32_t sumI_, sumU_ = 0;
+int64_t sumQ, sumE = 0;
+uint32_t sumI256, sumU256;
 static uint16_t usart_data[3];
 
 static const uint8_t cmdhead[4] = {0xAA, 'C', 'M', 'D'};
@@ -79,6 +83,12 @@ void DMA1_Channel1_IRQHandler(void)
       usart_data[0] = 0xffff;
       usart_data[1] = sumI_/16;
       usart_data[2] = sumU_/16;
+      sumI256 = sumI_;
+      sumU256 = sumU_;
+      int32_t sumI_noOffset = sumI256+I_offset;
+      int32_t sumU_noOffset = sumU256+U_offset;
+      sumQ += sumI_noOffset;
+      sumE += ((int64_t)sumU_noOffset*sumI_noOffset)>>16;
       sumI_ = 0;
       sumU_ = 0;
       USART_Send((uint8_t *)usart_data, sizeof(uint16_t)*3);

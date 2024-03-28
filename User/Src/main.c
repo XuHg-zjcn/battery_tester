@@ -1,6 +1,6 @@
 /*************************************************************************
  *  电池测试仪固件主程序文件
- *  Copyright (C) 2023  Xu Ruijun
+ *  Copyright (C) 2023-2024  Xu Ruijun
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,6 +28,8 @@
 #include "usart.h"
 #include "command.h"
 #include "oled.h"
+#include "ch32v203_delay.h"
+#include "app.h"
 
 #define LED1_GPIO_PORT GPIOC
 #define LED1_PIN       LL_GPIO_PIN_13
@@ -61,6 +63,7 @@ void main()
 {
   SystemClock_Config();
   MOS_Init();
+  Delay_Init();
   LED_Init();
   USART_Init();
   //PID_Init(&pid, -400, 4000);
@@ -68,6 +71,7 @@ void main()
   ADC_Init();
   data[0] = 65535;
   while(1){
+    app();
   }
 }
 

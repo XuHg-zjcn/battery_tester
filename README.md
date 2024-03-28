@@ -14,6 +14,7 @@
 ## 已实现功能
 - 恒流放电
 - 截止电压
+- OLED显示实时数据
 
 ## 上位机功能
 - 显示波形
@@ -23,7 +24,7 @@
 ## 待实现功能
 - 放电停止后上位机停止累计并提示
 - 电池意外断开暂停并提示，待重新连接后继续
-- 添加显示屏和按键，脱离电脑使用
+- 添加按键，脱离电脑使用
 - 测试参数和数据储存到FLASH中，连接电脑后传输
 - 测量内阻，电化学阻抗谱(EIS)
 - 通信数据校验
@@ -37,7 +38,7 @@
 
 本README.md文件使用以下许可证
 ```
-Copyright (C) 2023 Xu Ruijun
+Copyright (C) 2023-2024 Xu Ruijun
 
 Copying and distribution of this README file, with or without modification,
 are permitted in any medium without royalty provided the copyright
