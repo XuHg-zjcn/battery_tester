@@ -24,20 +24,29 @@ const uint32_t U_coef = (uint32_t)(mV_LSB*(1ULL<<32));
 const int32_t I_offset = (int32_t)(mA_bias/mA_LSB);
 const int32_t U_offset = (int32_t)(mV_bias/mV_LSB);
 const uint32_t R_coef = (uint32_t)(Ohm_Line*mA_LSB/mV_LSB*(1ULL<<32));
-const uint32_t Q_sht = (uint32_t)(fmin(0.0, -floor(log2(mAh_LSB))-1));
+const uint32_t Q_sht = MAX((int32_t)(-floor(log2(mAh_LSB))-1), 0);
 const uint32_t Q_coef = (uint32_t)(mAh_LSB*(1ULL<<Q_sht)*(1ULL<<32));
-const uint32_t E_sht = (uint32_t)(fmin(0.0, -floor(log2(mWh_LSB))-1));
+const uint32_t E_sht = MAX((int32_t)(-floor(log2(mWh_LSB))-1), 0);
 const uint32_t E_coef = (uint32_t)(mWh_LSB*(1ULL<<E_sht)*(1ULL<<32));
+
+int32_t sumI_to_noOffset(uint32_t sumI)
+{
+  return sumI + I_offset;
+}
+
+int32_t sumU_to_noOffset(uint32_t sumU, uint32_t sumI)
+{
+  return sumU + U_offset + I32xU32_HI32(sumI_to_noOffset(sumI), R_coef);
+}
 
 int32_t sumI_to_mA(uint32_t sumI)
 {
-  return I32xU32_HI32(sumI+I_offset, I_coef);
+  return I32xU32_HI32(sumI_to_noOffset(sumI), I_coef);
 }
 
 int32_t sumU_to_mV(uint32_t sumU, uint32_t sumI)
 {
-  sumU += I32xU32_HI32(sumI+I_offset, R_coef);
-  return I32xU32_HI32(sumU+U_offset, U_coef);
+  return I32xU32_HI32(sumU_to_noOffset(sumU, sumI), U_coef);
 }
 
 int32_t sumQ_to_mAh(int64_t sumQ)

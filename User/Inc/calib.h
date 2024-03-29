@@ -35,6 +35,8 @@
 extern "C"{
 #endif
 
+int32_t sumI_to_noOffset(uint32_t sumI);
+int32_t sumU_to_noOffset(uint32_t sumU, uint32_t sumI);
 int32_t sumI_to_mA(uint32_t sumI);
 int32_t sumU_to_mV(uint32_t sumU, uint32_t sumI);
 int32_t sumQ_to_mAh(int64_t sumQ);

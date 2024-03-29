@@ -25,6 +25,7 @@
 #include "pid.h"
 #include "mos_pwm.h"
 #include "command.h"
+#include "calib.h"
 #include <stddef.h>
 
 
@@ -34,7 +35,6 @@ void DMA1_Channel4_IRQHandler(void) __attribute__((interrupt()));
 
 extern uint16_t adc_dma_buff[32*2];
 extern PID_stat pid;
-extern const int32_t I_offset, U_offset;
 
 uint32_t update_count = 0;
 static uint32_t sumI_, sumU_ = 0;
@@ -85,8 +85,8 @@ void DMA1_Channel1_IRQHandler(void)
       usart_data[2] = sumU_/16;
       sumI256 = sumI_;
       sumU256 = sumU_;
-      int32_t sumI_noOffset = sumI256+I_offset;
-      int32_t sumU_noOffset = sumU256+U_offset;
+      int32_t sumI_noOffset = sumI_to_noOffset(sumI256);
+      int32_t sumU_noOffset = sumU_to_noOffset(sumU256, sumI256);
       sumQ += sumI_noOffset;
       sumE += ((int64_t)sumU_noOffset*sumI_noOffset)>>16;
       sumI_ = 0;
