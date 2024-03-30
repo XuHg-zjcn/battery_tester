@@ -42,6 +42,7 @@ int64_t sumQ, sumE = 0;
 uint32_t sumI256, sumU256;
 static uint16_t usart_data[3];
 
+static const uint8_t report_stop[6] = {0xff, 0xfe, 'S', 'T', 'O', 'P'};
 static const uint8_t cmdhead[4] = {0xAA, 'C', 'M', 'D'};
 static uint64_t usart_rx_last_ts = 0; //接收到最后一个字节的时间戳
 static uint32_t cmd_i = 0;
@@ -68,8 +69,9 @@ void DMA1_Channel1_IRQHandler(void)
       sumI += p[i*2+0];
       sumU += p[i*2+1];
     }
-    if(sumU < stop_vmin){
+    if(sumU < stop_vmin && mode != Mode_Stop){
       mode = Mode_Stop;
+      USART_Send(report_stop, sizeof(report_stop));
     }
     if(mode == Mode_ConsCurr){
       MOS_Set(PID_update(&pid, (int32_t)sumI-curr));
@@ -85,10 +87,12 @@ void DMA1_Channel1_IRQHandler(void)
       usart_data[2] = sumU_/16;
       sumI256 = sumI_;
       sumU256 = sumU_;
-      int32_t sumI_noOffset = sumI_to_noOffset(sumI256);
-      int32_t sumU_noOffset = sumU_to_noOffset(sumU256, sumI256);
-      sumQ += sumI_noOffset;
-      sumE += ((int64_t)sumU_noOffset*sumI_noOffset)>>16;
+      if(mode != Mode_Stop){
+        int32_t sumI_noOffset = sumI_to_noOffset(sumI256);
+        int32_t sumU_noOffset = sumU_to_noOffset(sumU256, sumI256);
+        sumQ += sumI_noOffset;
+        sumE += ((int64_t)sumU_noOffset*sumI_noOffset)>>16;
+      }
       sumI_ = 0;
       sumU_ = 0;
       USART_Send((uint8_t *)usart_data, sizeof(uint16_t)*3);
@@ -142,6 +146,8 @@ void DMA1_Channel4_IRQHandler(void)
 	usart_tx_begin = next;
       }else{
 	usart_tx_begin = -1;
+	//已经是队列中最后一个了
+	//但在这次的发送过程中又添加新消息，可以直接覆盖usart_txqueue[0]
       }
     }
   }

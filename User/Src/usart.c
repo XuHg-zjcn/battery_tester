@@ -69,15 +69,24 @@ void USART_Send(const uint8_t *data, uint32_t length)
 {
   NVIC_DisableIRQ(DMA1_Channel4_IRQn);
   if(!LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_4) && usart_tx_begin == -1){
+    //DMA通道关闭，并且不是在地址更新过程中，可以将传入地址直接写入DMA控制器
     LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNEL_4, (uint32_t)&data[0]);
     LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_4, length);
     LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_4);
   }else{
-    while(usart_tx_begin != usart_tx_end);
-    int i = (usart_tx_begin < 0)?0:usart_tx_end;
+    while(usart_tx_begin == usart_tx_end && usart_tx_begin>=0); //等待环形队列至少有一个空位
+    int i; //传入数据指针存放位置
+    if(usart_tx_begin < 0){
+      //当前队列为空，添加到0处
+      usart_tx_begin = 0;
+      i = 0;
+    }else{
+      //添加到队列尾部
+      i = usart_tx_end;
+    }
     usart_txqueue[i].addr = (uint32_t)data;
     usart_txqueue[i].size = length;
-    usart_tx_end = (i+1)%ARR_NELEM(usart_txqueue);
+    usart_tx_end = (i+1)%ARR_NELEM(usart_txqueue); //计算新末尾
   }
   NVIC_EnableIRQ(DMA1_Channel4_IRQn);
 }

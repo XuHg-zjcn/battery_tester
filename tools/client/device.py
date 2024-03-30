@@ -51,12 +51,17 @@ class Device(QThread):
         while True:
             raw = self.ser.read(6)
             values = struct.unpack('<HHH', raw)
-            if values[0] != 65535:
+            if values[0] == 0xffff:
+                volt_adc, curr_adc = values[1:]
+                self.rec.update(curr_adc, volt_adc)
+            elif raw == b'\xff\xfeSTOP':
+                self.rec.stop()
+                self.dvc.ui.pushButton_startstop.setText('开始/恢复')
+                print('stop')
+            else:
                 self.ser.read(1)
-                print('rxerr')
+                print('rxerr', raw)
                 continue
-            volt_adc, curr_adc = values[1:]
-            self.rec.update(curr_adc, volt_adc)
 
     def adc2si_calib(self, volt_adc, curr_adc):
         curr_A = curr_adc*conf.A_LSB + conf.A_bias
