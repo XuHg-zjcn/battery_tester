@@ -1,0 +1,3 @@
+[submodule "my_libs/func32"]
+	path = my_libs/func32
+	url = https://codeberg.org/techhorse/func32.git

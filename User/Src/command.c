@@ -22,7 +22,22 @@
 #define READU16_UNALIGN(x) (CAST_U8ARR(x)[0] + ((CAST_U8ARR(x)[1])<<8))
 
 volatile TestMode mode;
-volatile uint16_t paras[3];
+volatile uint16_t paras[7];
+uint32_t wave_logfcurr;
+int32_t wave_phase;
+
+void SetMode(TestMode new_mode)
+{
+  if(new_mode == Mode_CurrWave){
+    wave_phase = 0;
+    if(wave_logdfdt < 0){
+      wave_logfcurr = ((uint32_t)wave_logfmax)<<16;
+    }else{
+      wave_logfcurr = ((uint32_t)wave_logfmin)<<16;
+    }
+  }
+  mode = new_mode;
+}
 
 void ExecCmd(uint8_t *buff)
 {
@@ -31,7 +46,7 @@ void ExecCmd(uint8_t *buff)
   while(buff < end){
     switch((CommandType)buff[0]){
     case Cmd_SetMode:
-      mode = buff[1];
+      SetMode(buff[1]);
       buff += 2;
       break;
     case Cmd_SetPara:

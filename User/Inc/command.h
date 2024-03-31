@@ -35,13 +35,18 @@ typedef enum{
   Mode_ConsVolt = 2,
   Mode_ConsPower = 3,
   Mode_ConsResis = 4,
+  Mode_CurrWave = 5,
 }TestMode;
 
 extern volatile TestMode mode;
-extern volatile uint16_t paras[3];
+extern volatile uint16_t paras[7];
 #define curr      paras[0]
 #define stop_vmin paras[1]
 #define report_ms paras[2]
+#define wave_amp  paras[3]
+#define wave_logfmin paras[4]
+#define wave_logfmax paras[5]
+#define wave_logdfdt ((int16_t)paras[6])
 
 void ExecCmd(uint8_t *buff);
 

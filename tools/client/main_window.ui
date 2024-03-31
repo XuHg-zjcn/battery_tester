@@ -286,7 +286,18 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QComboBox" name="comboBox_mode"/>
+      <widget class="QComboBox" name="comboBox_mode">
+       <item>
+        <property name="text">
+         <string>恒流放电</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>扫频电流</string>
+        </property>
+       </item>
+      </widget>
      </item>
      <item row="1" column="0">
       <widget class="QLabel" name="label_show">

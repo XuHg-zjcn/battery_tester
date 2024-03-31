@@ -44,8 +44,8 @@ class DataViewControl:
         self.timer_value.timeout.connect(self.update_showvalue)
         self.timer_value.start(100)
         self.ui.checkBox_raw.stateChanged.connect(self.checkBox_raw_stateChanged)
-        self.ui.pushButton_startstop.clicked.connect(self.pushButton_startstop_clicked)
-        self.ui.pushButton_updatelimit.clicked.connect(self.pushButton_updatelimit_clicked)
+        self.ui.pushButton_StartStop.clicked.connect(self.pushButton_startstop_clicked)
+        self.ui.pushButton_UpdateLimit.clicked.connect(self.pushButton_updatelimit_clicked)
         self.ui.comboBox_show.currentIndexChanged.connect(self.comboBox_show_changed)
 
     def update_wave(self):
@@ -111,7 +111,20 @@ class DataViewControl:
             stop_vmin_adc, curr_adc = self.dev.si2adc_calib(stop_vmin_V, curr_A)
             stop_vmin_adc = round(stop_vmin_adc)
             curr_adc = round(curr_adc)
-        self.dev.set_para(curr_adc, stop_vmin_adc)
+        mode = self.ui.comboBox_mode.currentIndex()
+        if mode == 0: # 恒流放电
+            self.dev.set_para(curr_adc, stop_vmin_adc)
+        elif mode == 1: # 扫频电流
+            waveamp = round(self.dev.si2adc_calib(0, float(self.ui.lineEdit_Power_limit.text()))[1])
+            logfmin = self.dev.si2logf(float(self.ui.lineEdit_Qu_limit.text()))
+            logfmax = self.dev.si2logf(float(self.ui.lineEdit_Ene_limit.text()))
+            logdfdt = self.dev.s_dec_to_logdfdt(float(self.ui.lineEdit_Time_limit.text()))
+            self.dev.set_para(curr=curr_adc,
+                              stop_vmin=stop_vmin_adc,
+                              wave_amp=waveamp,
+                              wave_logfmin=logfmin,
+                              wave_logfmax=logfmax,
+                              wave_logdfdt=logdfdt)
 
     def pushButton_startstop_clicked(self):
         if self.rec.running:
@@ -128,21 +141,26 @@ class DataViewControl:
             else:
                 self.start_clean_data()
 
+    def get_comboxBox_mode_cmd(self):
+        lst = [cmd.Mode_ConsCurr, cmd.Mode_CurrWave]
+        index = self.ui.comboBox_mode.currentIndex()
+        return lst[index]
+
     def start_clean_data(self):
         self.rec.clean()
-        self.dev.set_mode(cmd.Mode_ConsCurr)
+        self.dev.set_mode(self.get_comboxBox_mode_cmd())
         self.rec.start()
-        self.ui.pushButton_startstop.setText('停止/暂停')
+        self.ui.pushButton_StartStop.setText('停止/暂停')
 
     def start_no_clean(self):
-        self.dev.set_mode(cmd.Mode_ConsCurr)
+        self.dev.set_mode(self.get_comboxBox_mode_cmd())
         self.rec.resume()
-        self.ui.pushButton_startstop.setText('停止/暂停')
+        self.ui.pushButton_StartStop.setText('停止/暂停')
 
     def stop(self):
         self.dev.set_mode(cmd.Mode_Stop)
         self.rec.stop()
-        self.ui.pushButton_startstop.setText('开始/恢复')
+        self.ui.pushButton_StartStop.setText('开始/恢复')
 
     def comboBox_show_changed(self, index):
         if index == 0:

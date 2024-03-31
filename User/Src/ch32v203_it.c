@@ -26,6 +26,8 @@
 #include "mos_pwm.h"
 #include "command.h"
 #include "calib.h"
+#include "ops64.h"
+#include "func32.h"
 #include <stddef.h>
 
 
@@ -47,6 +49,8 @@ static const uint8_t cmdhead[4] = {0xAA, 'C', 'M', 'D'};
 static uint64_t usart_rx_last_ts = 0; //接收到最后一个字节的时间戳
 static uint32_t cmd_i = 0;
 static uint8_t rxbuff[32];
+extern uint32_t wave_logfcurr;
+extern int32_t wave_phase;
 extern DMAQueue_item usart_txqueue[4];
 extern volatile int32_t usart_tx_begin; //下一个发送任务,-1表示空
 extern volatile int32_t usart_tx_end; //任务尾部+1
@@ -75,6 +79,16 @@ void DMA1_Channel1_IRQHandler(void)
     }
     if(mode == Mode_ConsCurr){
       MOS_Set(PID_update(&pid, (int32_t)sumI-curr));
+    }else if(mode == Mode_CurrWave){
+      int32_t wave_delta = I32xU32_HI32(sin32(wave_phase), wave_amp);
+      MOS_Set(PID_update(&pid, (int32_t)sumI-((int32_t)curr+wave_delta)));
+      wave_phase += exp32x(wave_logfcurr);
+      wave_logfcurr += wave_logdfdt;
+      if((wave_logdfdt>0 && (wave_logfcurr>>16)>=wave_logfmax) ||
+         (wave_logdfdt<0 && (wave_logfcurr>>16)<wave_logfmin)){
+	mode = Mode_Stop;
+        USART_Send(report_stop, sizeof(report_stop));
+      }
     }else{
       MOS_Set(4096);
     }
