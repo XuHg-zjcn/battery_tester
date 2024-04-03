@@ -18,7 +18,7 @@
 #########################################################################
 import datetime
 import pyqtgraph as pg
-from PyQt6.QtWidgets import QMessageBox
+from PyQt6.QtWidgets import QMessageBox, QFileDialog
 
 from main_window import Ui_MainWindow
 import command as cmd
@@ -47,6 +47,7 @@ class DataViewControl:
         self.ui.pushButton_StartStop.clicked.connect(self.pushButton_startstop_clicked)
         self.ui.pushButton_UpdateLimit.clicked.connect(self.pushButton_updatelimit_clicked)
         self.ui.comboBox_show.currentIndexChanged.connect(self.comboBox_show_changed)
+        self.ui.action_OpenFile.triggered.connect(self.action_openfile)
 
     def update_wave(self):
         if self.ui.checkBox_raw.isChecked():
@@ -175,3 +176,11 @@ class DataViewControl:
             self.timer_plot.timeout.connect(self.update_curve)
             self.timer_plot.setInterval(200)
             self.timer_plot.start()
+
+    def action_openfile(self):
+        path = QFileDialog.getOpenFileName()
+        if path[0]:
+            if path[0][-7:] == '.dat.gz':
+                self.timer_plot.stop()
+                self.rec.open_gzip(path[0])
+                self.update_curve()

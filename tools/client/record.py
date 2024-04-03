@@ -83,3 +83,20 @@ class Recorder:
 
     def stop(self):
         self.running = False
+
+    def open_gzip(self, path):
+        self.clean()
+        f = gzip.open(path, 'rb')
+        while True:
+            try:
+                data = f.read(12*1000)
+            except Exception:
+                break
+            if len(data) != 12*1000:
+                break
+            data_np = np.fromiter(map(lambda i:struct.unpack('QHH', data[i*12:(i+1)*12]), range(1000)), np.dtype((int, 3)))
+            volt_adc_mean = data_np[:,1].mean()
+            curr_adc_mean = data_np[:,2].mean()
+            volt_V_calib, curr_A = self.dev.adc2si_calib(volt_adc_mean, curr_adc_mean)
+            self.mean_V.append(volt_V_calib)
+            self.mean_A.append(curr_A)
