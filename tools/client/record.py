@@ -38,8 +38,12 @@ class Recorder:
         self.data = np.zeros((2, Nhist), dtype=np.uint16)
         fn = datetime.datetime.now().strftime('%Y%m%d_%H%M%S') + '.dat.gz'
         self.f = gzip.open(fn, 'wb')
+        self.f.write(b"BatteryTest DataV1\n"
+                     b"data:u32 tdelta(us);u16 vadc(LSB/16);u16 cadc(LSB/16)\n\0")
         #TODO: 保存完整EOF，避免读取时错误
         #TODO: 分次测试数据分别保存到不同文件
+        self.t_wdata = time.monotonic_ns()
+        self.ba_wdata = bytearray()
 
     def update(self, volt_adc, curr_adc):
         ts_ns = time.monotonic_ns()
@@ -60,8 +64,13 @@ class Recorder:
                 mean_volt_V_calib, mean_curr_A = self.dev.adc2si_calib(mean_volt_adc, mean_curr_adc)
                 self.mean_V.append(mean_volt_V_calib)
                 self.mean_A.append(mean_curr_A)
-        data = struct.pack('QHH', ts_ns, volt_adc, curr_adc)
-        self.f.write(data)
+        tdelta_us = (ts_ns - self.t_wdata)//1000
+        data = struct.pack('IHH', tdelta_us, volt_adc, curr_adc)
+        self.ba_wdata.extend(data)
+        self.t_wdata += tdelta_us*1000
+        if len(self.ba_wdata) >= 8000:
+            self.f.write(self.ba_wdata)
+            self.ba_wdata.clear()
 
     def clean(self):
         self.running = False
@@ -87,14 +96,24 @@ class Recorder:
     def open_gzip(self, path):
         self.clean()
         f = gzip.open(path, 'rb')
+        head = f.read(1000)
+        if head[:18] == b'BatteryTest DataV1':
+            n = head.find(b'\0')
+            f.seek(n+1)
+            item_size = 8
+            func = lambda i:struct.unpack('IHH', data[i*8:(i+1)*8])
+        else:
+            f.rewind()
+            item_size = 12
+            func = lambda i:struct.unpack('QHH', data[i*12:(i+1)*12])
         while True:
             try:
-                data = f.read(12*1000)
+                data = f.read(item_size*1000)
             except Exception:
                 break
-            if len(data) != 12*1000:
+            if len(data) != item_size*1000:
                 break
-            data_np = np.fromiter(map(lambda i:struct.unpack('QHH', data[i*12:(i+1)*12]), range(1000)), np.dtype((int, 3)))
+            data_np = np.fromiter(map(func, range(1000)), np.dtype((int, 3)))
             volt_adc_mean = data_np[:,1].mean()
             curr_adc_mean = data_np[:,2].mean()
             volt_V_calib, curr_A = self.dev.adc2si_calib(volt_adc_mean, curr_adc_mean)
