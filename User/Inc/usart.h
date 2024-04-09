@@ -23,13 +23,6 @@
 
 #define ARR_NELEM(x)           (sizeof(x)/sizeof(x[0]))
 
-#define GPIO_PORT_USART        GPIOA
-#define LL_GPIO_PIN_USART_TX   LL_GPIO_PIN_9
-#define LL_GPIO_PIN_USART_RX   LL_GPIO_PIN_10
-
-#define USART_PC               USART1
-#define USART_PC_IRQn          USART1_IRQn
-
 typedef struct{
   uint32_t addr;
   uint16_t size;

@@ -21,6 +21,7 @@
 #include "calib.h"
 #include "ch32v203_delay.h"
 #include <cstdio>
+#include "conf.h"
 
 extern uint32_t update_count;
 extern uint32_t sumI256, sumU256;
@@ -29,8 +30,8 @@ extern int64_t sumQ, sumE;
 int app()
 {
   C_I2C ci2c;
-  ci2c.Instance             = I2C2;
-  ci2c.Init.ClockSpeed      = 400000;
+  ci2c.Instance             = I2Cx_OLED;
+  ci2c.Init.ClockSpeed      = I2C_CLOCKSPEED_OLED;
   ci2c.Init.DutyCycle       = I2C_DUTYCYCLE_16_9;
   ci2c.Init.OwnAddress1     = 0xFF;
   ci2c.Init.AddressingMode  = I2C_ADDRESSINGMODE_7BIT;

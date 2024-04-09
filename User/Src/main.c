@@ -30,6 +30,7 @@
 #include "oled.h"
 #include "ch32v203_delay.h"
 #include "app.h"
+#include "conf.h"
 
 #define LED1_GPIO_PORT GPIOC
 #define LED1_PIN       LL_GPIO_PIN_13

@@ -29,6 +29,7 @@
 #include "ops64.h"
 #include "func32.h"
 #include <stddef.h>
+#include "conf.h"
 
 
 void DMA1_Channel1_IRQHandler(void) __attribute__((interrupt()));
@@ -116,8 +117,8 @@ void DMA1_Channel1_IRQHandler(void)
 
 void USART1_IRQHandler(void)
 {
-  if(LL_USART_IsActiveFlag_RXNE(USART_PC)){
-    uint8_t byte = LL_USART_ReceiveData8(USART_PC);
+  if(LL_USART_IsActiveFlag_RXNE(USARTx_PC)){
+    uint8_t byte = LL_USART_ReceiveData8(USARTx_PC);
     uint64_t now = SysTick_GetSafe();
     if(cmd_i < 0 && now - usart_rx_last_ts > 72/8*5000){
       cmd_i = 0;
