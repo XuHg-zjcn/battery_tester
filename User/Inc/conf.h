@@ -47,6 +47,20 @@
 #define GPIO_PORT_OLED_SDA    GPIOB
 #define LL_GPIO_PIN_OLED_SDA  LL_GPIO_PIN_11
 
+//与BMS系统通信的I2C SMBus
+#define I2Cx_SMB              I2C1
+#define I2C_CLOCKSPEED_SMB    100000
+#define I2C_DUTYCYCLE_SMB     LL_I2C_DUTYCYCLE_2
+#define GPIO_PORT_SMB_SCL     GPIOB
+#define LL_GPIO_PIN_SMB_SCL   LL_GPIO_PIN_6
+#define GPIO_PORT_SMB_SDA     GPIOB
+#define LL_GPIO_PIN_SMB_SDA   LL_GPIO_PIN_7
+#define LL_DMA_CHANNELx_I2C_SMB_TX      LL_DMA_CHANNEL_6
+#define LL_DMA_CHANNELx_I2C_SMB_RX      LL_DMA_CHANNEL_7
+#define DMA1_Channelx_I2C_SMB_TX_IRQn   DMA1_Channel6_IRQn
+#define DMA1_Channelx_I2C_SMB_RX_IRQn   DMA1_Channel7_IRQn
+#define I2Cx_SMB_EV_IRQn                I2C1_EV_IRQn
+
 //与电脑通信的串口
 #define USARTx_PC             USART1
 #define USART_BAUD            115200

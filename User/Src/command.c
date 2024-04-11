@@ -16,6 +16,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *************************************************************************/
 #include "command.h"
+#include "smb.h"
 
 #define ARRLEN(x)          (sizeof(x)/sizeof(x[0]))
 #define CAST_U8ARR(x)      ((uint8_t *)(x))
@@ -53,6 +54,14 @@ void ExecCmd(uint8_t *buff)
       if(buff[1] < ARRLEN(paras))
         paras[buff[1]] = READU16_UNALIGN(&buff[2]);
       buff += 4;
+      break;
+    case Cmd_SMBWrite:
+      I2C_SMB_Write(buff[1], buff[2], buff+3);
+      buff += buff[1]+3; //长度不包含设备地址
+      break;
+    case Cmd_SMBRead:
+      I2C_SMB_Read(buff[1], buff[2], buff[3], buff+4);
+      buff += buff[1]+4;
       break;
     default:
       return;

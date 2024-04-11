@@ -20,8 +20,10 @@
 #include "c_i2c.hpp"
 #include "calib.h"
 #include "ch32v203_delay.h"
+#include "stm32f1xx_ll_i2c.h"
 #include <cstdio>
 #include "conf.h"
+#include "smb.h"
 
 extern uint32_t update_count;
 extern uint32_t sumI256, sumU256;

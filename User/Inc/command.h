@@ -27,6 +27,8 @@ typedef enum{
   Cmd_GetMode = 2,
   Cmd_SetPara = 3,
   Cmd_GetPara = 4,
+  Cmd_SMBWrite = 5,
+  Cmd_SMBRead = 6,
 }CommandType;
 
 typedef enum{

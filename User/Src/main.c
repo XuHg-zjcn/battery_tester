@@ -31,6 +31,7 @@
 #include "ch32v203_delay.h"
 #include "app.h"
 #include "conf.h"
+#include "smb.h"
 
 #define LED1_GPIO_PORT GPIOC
 #define LED1_PIN       LL_GPIO_PIN_13
@@ -70,6 +71,7 @@ void main()
   //PID_Init(&pid, -400, 4000);
   OLED_Init();
   ADC_Init();
+  SMB_Init();
   data[0] = 65535;
   while(1){
     app();

@@ -55,6 +55,7 @@ COMFLAGS += -Wunused#             #开启无用变量警告
 COMFLAGS += -Wuninitialized#      #开启无初始化警告
 COMFLAGS += -DSTM32F103xB#        #定义型号宏供HAL库使用
 COMFLAGS += -DCH32V203x8#         #定义真实型号宏
+COMFLAGS += -DUSE_FULL_LL_DRIVER
 #COMFLAGS += -g#                  #调试
 
 CCFLAGS := $(COMFLAGS)
