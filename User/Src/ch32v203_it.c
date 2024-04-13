@@ -195,17 +195,13 @@ void DMA1_Channel6_IRQHandler(void)
 {
   if(LL_DMA_IsActiveFlag_TC6(DMA1)){
     LL_DMA_ClearFlag_TC6(DMA1);
+    LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNELx_I2C_SMB_TX);
     if(smb_rxbyte != 0){
-      LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNELx_I2C_SMB_RX);
-      LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNELx_I2C_SMB_RX, smb_rxbyte);
-      //LL_I2C_EnableSMBusPECCompare(I2Cx_SMB);
-      LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNELx_I2C_SMB_RX);
       LL_I2C_GenerateStartCondition(I2Cx_SMB);
-      LL_I2C_TransmitData8(I2Cx_SMB, smb_addr|0x01);
+      LL_I2C_EnableLastDMA(I2Cx_SMB);
     }else{
       LL_I2C_GenerateStopCondition(I2Cx_SMB);
     }
-    LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNELx_I2C_SMB_TX);
   }
 }
 
@@ -213,10 +209,10 @@ void DMA1_Channel7_IRQHandler(void)
 {
   if(LL_DMA_IsActiveFlag_TC7(DMA1)){
     LL_DMA_ClearFlag_TC7(DMA1);
+    LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNELx_I2C_SMB_RX);
+    LL_I2C_GenerateStopCondition(I2Cx_SMB);
     USART_Send(smb_report_head, sizeof(smb_report_head));
     USART_Send(smb_buff, smb_rxbyte);
     smb_rxbyte = 0;
-    LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNELx_I2C_SMB_RX);
-    LL_I2C_GenerateStopCondition(I2Cx_SMB);
   }
 }

@@ -60,7 +60,7 @@ void SMB_Init()
                         LL_DMA_MEMORY_INCREMENT           |
                         LL_DMA_PDATAALIGN_BYTE            |
                         LL_DMA_MDATAALIGN_BYTE            |
-                        LL_DMA_PRIORITY_VERYHIGH);
+                        LL_DMA_PRIORITY_MEDIUM);
   LL_DMA_ConfigTransfer(DMA1,
                         LL_DMA_CHANNELx_I2C_SMB_RX,
                         LL_DMA_DIRECTION_PERIPH_TO_MEMORY |
@@ -100,7 +100,7 @@ void I2C_SMB_Write(uint16_t len, uint8_t i2c_addr, const uint8_t *data)
   smb_rxbyte = 0;
   smb_addr = i2c_addr;
   LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNELx_I2C_SMB_TX);
-  LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNELx_I2C_SMB_TX, data);
+  LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNELx_I2C_SMB_TX, (uint32_t)data);
   //DMA传输结束后立即设置STOP最后一字节无法发送，故DMA多传输一个无用字节
   LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNELx_I2C_SMB_TX, len+1);
   LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNELx_I2C_SMB_TX);
@@ -111,6 +111,7 @@ void I2C_SMB_Write(uint16_t len, uint8_t i2c_addr, const uint8_t *data)
 //tlen不包含I2C设备地址
 void I2C_SMB_Read(uint16_t tlen, uint16_t rlen, uint8_t i2c_addr, const uint8_t *data)
 {
+  //TODO: 网上看到接收少于2字节时DMA不发出EOT_1, 设置了LAST位也无法发送NACK结束, 这时应该不要使用DMA
   if(LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNELx_I2C_SMB_TX) || \
      LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNELx_I2C_SMB_RX)){
     return;
@@ -118,8 +119,12 @@ void I2C_SMB_Read(uint16_t tlen, uint16_t rlen, uint8_t i2c_addr, const uint8_t 
   smb_rxbyte = rlen;
   smb_addr = i2c_addr;
   LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNELx_I2C_SMB_TX);
-  LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNELx_I2C_SMB_TX, data);
+  LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNELx_I2C_SMB_RX);
+  LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNELx_I2C_SMB_TX, (uint32_t)data);
   LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNELx_I2C_SMB_TX, tlen+1);
+  LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNELx_I2C_SMB_RX, (uint32_t)smb_buff);
+  LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNELx_I2C_SMB_RX, rlen);
+  LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNELx_I2C_SMB_RX);
   LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNELx_I2C_SMB_TX);
   LL_I2C_AcknowledgeNextData(I2Cx_SMB, LL_I2C_ACK);
   LL_I2C_GenerateStartCondition(I2Cx_SMB);
