@@ -76,7 +76,10 @@ void SMB_Init()
 
   NVIC_SetPriority(I2Cx_SMB_EV_IRQn, 2);
   NVIC_EnableIRQ(I2Cx_SMB_EV_IRQn);
+  NVIC_SetPriority(I2Cx_SMB_ER_IRQn, 2);
+  NVIC_EnableIRQ(I2Cx_SMB_ER_IRQn);
   LL_I2C_EnableIT_EVT(I2Cx_SMB);
+  LL_I2C_EnableIT_ERR(I2Cx_SMB);
 
   NVIC_SetPriority(DMA1_Channelx_I2C_SMB_TX_IRQn, 2);
   NVIC_EnableIRQ(DMA1_Channelx_I2C_SMB_TX_IRQn);

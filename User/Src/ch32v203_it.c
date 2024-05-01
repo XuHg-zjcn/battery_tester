@@ -39,6 +39,7 @@ void DMA1_Channel4_IRQHandler(void) __attribute__((interrupt()));
 void DMA1_Channel6_IRQHandler(void) __attribute__((interrupt()));
 void DMA1_Channel7_IRQHandler(void) __attribute__((interrupt()));
 void I2C1_EV_IRQHandler(void) __attribute__((interrupt()));
+void I2C1_ER_IRQHandler(void) __attribute__((interrupt()));
 
 extern uint16_t adc_dma_buff[32*2];
 extern PID_stat pid;
@@ -54,7 +55,7 @@ static const uint8_t report_stop[6] = {0xff, 0xfe, 'S', 'T', 'O', 'P'};
 static const uint8_t cmdhead[4] = {0xAA, 'C', 'M', 'D'};
 static uint64_t usart_rx_last_ts = 0; //接收到最后一个字节的时间戳
 static uint32_t cmd_i = 0;
-static uint8_t rxbuff[32];
+static uint8_t rxbuff[64];
 extern uint32_t wave_logfcurr;
 extern int32_t wave_phase;
 extern DMAQueue_item usart_txqueue[4];
@@ -189,6 +190,16 @@ void I2C1_EV_IRQHandler(void)
   if(LL_I2C_IsActiveFlag_STOP(I2C1)){
     LL_I2C_ClearFlag_STOP(I2C1);
   }
+}
+
+void I2C1_ER_IRQHandler(void)
+{
+  if(LL_I2C_IsActiveFlag_AF(I2Cx_SMB)){
+    LL_I2C_GenerateStopCondition(I2Cx_SMB);
+    LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNELx_I2C_SMB_TX);
+    LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNELx_I2C_SMB_RX);
+  }
+  CLEAR_BIT(I2Cx_SMB->SR1, I2C_SR1_SMBALERT|I2C_SR1_TIMEOUT|I2C_SR1_PECERR|I2C_SR1_OVR|I2C_SR1_AF|I2C_SR1_ARLO|I2C_SR1_BERR);
 }
 
 void DMA1_Channel6_IRQHandler(void)

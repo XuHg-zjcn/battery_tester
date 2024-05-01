@@ -60,6 +60,7 @@
 #define DMA1_Channelx_I2C_SMB_TX_IRQn   DMA1_Channel6_IRQn
 #define DMA1_Channelx_I2C_SMB_RX_IRQn   DMA1_Channel7_IRQn
 #define I2Cx_SMB_EV_IRQn                I2C1_EV_IRQn
+#define I2Cx_SMB_ER_IRQn                I2C1_ER_IRQn
 
 //与电脑通信的串口
 #define USARTx_PC             USART1
