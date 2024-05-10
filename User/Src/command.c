@@ -23,7 +23,8 @@
 #define READU16_UNALIGN(x) (CAST_U8ARR(x)[0] + ((CAST_U8ARR(x)[1])<<8))
 
 volatile TestMode mode;
-volatile uint16_t paras[7];
+volatile uint16_t paras[7] =
+  {0, 0, 1, 0, 0, 0, 0};
 uint32_t wave_logfcurr;
 int32_t wave_phase;
 

@@ -42,10 +42,10 @@ typedef enum{
 
 extern volatile TestMode mode;
 extern volatile uint16_t paras[7];
-#define curr      paras[0]
-#define stop_vmin paras[1]
-#define report_ms paras[2]
-#define wave_amp  paras[3]
+#define curr         paras[0]
+#define stop_vmin    paras[1]
+#define report_ms    paras[2] //此处毫秒不准，~0.9102ms
+#define wave_amp     paras[3]
 #define wave_logfmin paras[4]
 #define wave_logfmax paras[5]
 #define wave_logdfdt ((int16_t)paras[6])

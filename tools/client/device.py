@@ -39,12 +39,14 @@ class Device(QThread):
         self.rec = None
         self.fPID = 72000000.0/256/16
 
-    def set_para(self, curr=None, stop_vmin=None, wave_amp=None, wave_logfmin=None, wave_logfmax=None, wave_logdfdt=None):
+    def set_para(self, curr=None, stop_vmin=None, report_ms=None, wave_amp=None, wave_logfmin=None, wave_logfmax=None, wave_logdfdt=None):
         pack = bytearray(cmd.Cmd_Head + b'\x08')
         if curr is not None:
             pack.extend(cmd.Cmd_SetPara + cmd.Para_curr + int.to_bytes(curr, 2, 'little'))
         if stop_vmin is not None:
             pack.extend(cmd.Cmd_SetPara + cmd.Para_stop_vmin + int.to_bytes(stop_vmin, 2, 'little'))
+        if report_ms is not None:
+            pack.extend(cmd.Cmd_SetPara + cmd.Para_report_ms + int.to_bytes(report_ms, 2, 'little'))
         if wave_amp is not None:
             pack.extend(cmd.Cmd_SetPara + cmd.Para_wave_amp + int.to_bytes(wave_amp, 2, 'little'))
         if wave_logfmin is not None:

@@ -106,20 +106,22 @@ void DMA1_Channel1_IRQHandler(void)
     sumI_ += sumI;
     sumU_ += sumU;
     if(update_count%16 == 0){
-      usart_data[0] = 0xffff;
-      usart_data[1] = sumI_/16;
-      usart_data[2] = sumU_/16;
       sumI256 = sumI_;
       sumU256 = sumU_;
+      sumI_ = 0;
+      sumU_ = 0;
       if(mode != Mode_Stop){
         int32_t sumI_noOffset = sumI_to_noOffset(sumI256);
         int32_t sumU_noOffset = sumU_to_noOffset(sumU256, sumI256);
         sumQ += sumI_noOffset;
         sumE += ((int64_t)sumU_noOffset*sumI_noOffset)>>16;
       }
-      sumI_ = 0;
-      sumU_ = 0;
-      USART_Send((uint8_t *)usart_data, sizeof(uint16_t)*3);
+      if(report_ms > 0 && (update_count/16)%report_ms == 0){
+	usart_data[0] = 0xffff;
+	usart_data[1] = sumI256/16;
+	usart_data[2] = sumU256/16;
+	USART_Send((uint8_t *)usart_data, sizeof(uint16_t)*3);
+      }
     }
   }
 }
