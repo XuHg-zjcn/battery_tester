@@ -48,6 +48,7 @@ class DataViewControl:
         self.ui.pushButton_UpdateLimit.clicked.connect(self.pushButton_updatelimit_clicked)
         self.ui.comboBox_show.currentIndexChanged.connect(self.comboBox_show_changed)
         self.ui.action_OpenFile.triggered.connect(self.action_openfile)
+        self.ui.checkBox_flashdata.stateChanged.connect(self.checkBox_flashdata_stateChanged)
 
     def update_wave(self):
         if self.ui.checkBox_raw.isChecked():
@@ -98,6 +99,12 @@ class DataViewControl:
             self.ui.label_Power_unit.setText('W')
             self.ui.label_Qu_unit.setText('Ah')
             self.ui.label_Ene_unit.setText('Wh')
+
+    def checkBox_flashdata_stateChanged(self, state):
+        if state:
+            self.dev.set_para(save_ms=5000)
+        else:
+            self.dev.set_para(save_ms=0)
 
     def pushButton_updatelimit_clicked(self):
         isRAW = self.ui.checkBox_raw.isChecked()

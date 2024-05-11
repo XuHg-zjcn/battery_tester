@@ -322,6 +322,19 @@
      </item>
     </layout>
    </widget>
+   <widget class="QCheckBox" name="checkBox_flashdata">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>240</y>
+      <width>131</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>将数据保存到FLASH</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

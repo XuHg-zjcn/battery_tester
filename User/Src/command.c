@@ -17,14 +17,16 @@
  *************************************************************************/
 #include "command.h"
 #include "smb.h"
+#include "flash.h"
+#include "conf.h"
 
 #define ARRLEN(x)          (sizeof(x)/sizeof(x[0]))
 #define CAST_U8ARR(x)      ((uint8_t *)(x))
 #define READU16_UNALIGN(x) (CAST_U8ARR(x)[0] + ((CAST_U8ARR(x)[1])<<8))
 
 volatile TestMode mode;
-volatile uint16_t paras[7] =
-  {0, 0, 1, 0, 0, 0, 0};
+volatile uint16_t paras[8] =
+  {0, 0, 1, 0, 0, 0, 0, 0};
 uint32_t wave_logfcurr;
 int32_t wave_phase;
 
@@ -64,6 +66,12 @@ void ExecCmd(uint8_t *buff)
       I2C_SMB_Read(buff[1], buff[2], buff[3], buff+4);
       buff += buff[1]+4;
       break;
+#if FLASH_DATAWRITE
+    case Cmd_FlashRead:
+      Flash_Read(READU16_UNALIGN(&buff[1]), buff[3]);
+      buff += 4;
+      break;
+#endif
     default:
       return;
     }

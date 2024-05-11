@@ -21,6 +21,8 @@
 #include "ch32v203x8.h"
 #include "ops.h"
 
+#define FLASH_DATAWRITE       1
+
 //#define MIN(a, b) (((a)<(b))?(a):(b))
 
 //ADC电流和电压采样

@@ -21,6 +21,7 @@
 #include "stm32f1xx_ll_dma.h"
 #include "stm32f1xx_ll_usart.h"
 #include "stm32f1xx_ll_i2c.h"
+#include "stm32f1xx_hal_flash.h"
 #include "ch32v_systick.h"
 #include "usart.h"
 #include "pid.h"
@@ -64,6 +65,12 @@ extern volatile int32_t usart_tx_end; //任务尾部+1
 extern int16_t smb_rxbyte;
 extern uint8_t smb_addr;
 extern uint8_t smb_buff[256];
+
+#if FLASH_DATAWRITE
+void FLASH_IRQHandler(void) __attribute__((interrupt()));
+static uint32_t sumI_save, sumU_save = 0;
+extern uint32_t waddr;
+#endif
 
 void DMA1_Channel1_IRQHandler(void)
 {
@@ -115,6 +122,18 @@ void DMA1_Channel1_IRQHandler(void)
         int32_t sumU_noOffset = sumU_to_noOffset(sumU256, sumI256);
         sumQ += sumI_noOffset;
         sumE += ((int64_t)sumU_noOffset*sumI_noOffset)>>16;
+#if FLASH_DATAWRITE
+	sumI_save += sumI256/16;
+	sumU_save += sumU256/16;
+	if(save_ms>0 && (update_count/16)%save_ms == 0 && waddr<0x08010000){
+	  uint32_t save = (((sumU_save/save_ms)&0xffffU)<<16)|((sumI_save/save_ms)&0xffffU);
+	  //uint32_t save = 0x1234abcd;
+	  HAL_FLASH_Program_IT(FLASH_TYPEPROGRAM_WORD, waddr, save);
+	  waddr += 4;
+	  sumU_save = 0;
+	  sumI_save = 0;
+	}
+#endif
       }
       if(report_ms > 0 && (update_count/16)%report_ms == 0){
 	usart_data[0] = 0xffff;
@@ -229,3 +248,10 @@ void DMA1_Channel7_IRQHandler(void)
     smb_rxbyte = 0;
   }
 }
+
+#if FLASH_DATAWRITE
+void FLASH_IRQHandler(void)
+{
+  HAL_FLASH_IRQHandler();
+}
+#endif

@@ -39,7 +39,9 @@ class Device(QThread):
         self.rec = None
         self.fPID = 72000000.0/256/16
 
-    def set_para(self, curr=None, stop_vmin=None, report_ms=None, wave_amp=None, wave_logfmin=None, wave_logfmax=None, wave_logdfdt=None):
+    def set_para(self, curr=None, stop_vmin=None, report_ms=None,
+                 wave_amp=None, wave_logfmin=None, wave_logfmax=None, wave_logdfdt=None,
+                 save_ms=None):
         pack = bytearray(cmd.Cmd_Head + b'\x08')
         if curr is not None:
             pack.extend(cmd.Cmd_SetPara + cmd.Para_curr + int.to_bytes(curr, 2, 'little'))
@@ -55,9 +57,17 @@ class Device(QThread):
             pack.extend(cmd.Cmd_SetPara + cmd.Para_wave_logfmax + int.to_bytes(wave_logfmax, 2, 'little'))
         if wave_logdfdt is not None:
             pack.extend(cmd.Cmd_SetPara + cmd.Para_wave_logdfdt + int.to_bytes(wave_logdfdt&0xffff, 2, 'little'))
+        if save_ms is not None:
+            pack.extend(cmd.Cmd_SetPara + cmd.Para_save_ms + int.to_bytes(save_ms, 2, 'little'))
         pack[4] = len(pack)-5
         self.ser.write(pack)
         print('send pack:', pack)
+
+    def read_data(self, raddr, size):
+        pack = cmd.Cmd_Head + b'\x04' + cmd.Cmd_FlashRead + struct.pack('<HB', raddr, size)
+        self.ser.write(pack)
+        print('send pack:', pack)
+        return self.ser.read(size)
 
     def set_mode(self, mode):
         pack = b'\xaaCMD\x02' + cmd.Cmd_SetMode + mode

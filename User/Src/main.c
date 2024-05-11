@@ -32,6 +32,7 @@
 #include "app.h"
 #include "conf.h"
 #include "smb.h"
+#include "flash.h"
 
 #define LED1_GPIO_PORT GPIOC
 #define LED1_PIN       LL_GPIO_PIN_13
@@ -72,6 +73,9 @@ void main()
   OLED_Init();
   ADC_Init();
   SMB_Init();
+#if FLASH_DATAWRITE
+  Flash_Init();
+#endif
   data[0] = 65535;
   while(1){
     app();
