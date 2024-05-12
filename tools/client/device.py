@@ -26,22 +26,25 @@ import conf
 import command as cmd
 
 
-def get_serial():
-    devpath = glob.glob('/dev/ttyUSB*')[0]
-    ser = serial.Serial(devpath, 115200)
-    return ser
+def get_serials():
+    return glob.glob('/dev/ttyUSB*')
+
+def open_serial(devpath):
+    return serial.Serial(devpath, 115200)
 
 
 class Device(QThread):
-    def __init__(self, ser):
+    def __init__(self, ser=None):
         super().__init__()
-        self.ser = ser
+        self.ser = ser  # None表示该设备未连接
         self.rec = None
         self.fPID = 72000000.0/256/16
 
     def set_para(self, curr=None, stop_vmin=None, report_ms=None,
                  wave_amp=None, wave_logfmin=None, wave_logfmax=None, wave_logdfdt=None,
                  save_ms=None):
+        if self.ser is None:
+            return
         pack = bytearray(cmd.Cmd_Head + b'\x08')
         if curr is not None:
             pack.extend(cmd.Cmd_SetPara + cmd.Para_curr + int.to_bytes(curr, 2, 'little'))
@@ -64,19 +67,27 @@ class Device(QThread):
         print('send pack:', pack)
 
     def read_data(self, raddr, size):
+        if self.ser is None:
+            return
         pack = cmd.Cmd_Head + b'\x04' + cmd.Cmd_FlashRead + struct.pack('<HB', raddr, size)
         self.ser.write(pack)
         print('send pack:', pack)
         return self.ser.read(size)
 
     def set_mode(self, mode):
+        if self.ser is None:
+            return
         pack = b'\xaaCMD\x02' + cmd.Cmd_SetMode + mode
         self.ser.write(pack)
         print('send pack:', pack)
 
     def run(self):
+        if self.ser is None:
+            return
         i = 0
         while True:
+            if self.ser is None:
+                break
             raw = self.ser.read(6)
             values = struct.unpack('<HHH', raw)
             if values[0] == 0xffff:

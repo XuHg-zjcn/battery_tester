@@ -352,7 +352,15 @@
     <addaction name="action_OpenFile"/>
     <addaction name="action_SaveFile"/>
    </widget>
+   <widget class="QMenu" name="menu_device">
+    <property name="title">
+     <string>设备</string>
+    </property>
+    <addaction name="action_disconn"/>
+    <addaction name="separator"/>
+   </widget>
    <addaction name="menu_File"/>
+   <addaction name="menu_device"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="action_OpenFile">
@@ -363,6 +371,21 @@
   <action name="action_SaveFile">
    <property name="text">
     <string>保存</string>
+   </property>
+  </action>
+  <action name="action_dev1">
+   <property name="text">
+    <string>没有设备</string>
+   </property>
+  </action>
+  <action name="action_3">
+   <property name="text">
+    <string>设置</string>
+   </property>
+  </action>
+  <action name="action_disconn">
+   <property name="text">
+    <string>断开连接</string>
    </property>
   </action>
  </widget>

@@ -23,6 +23,7 @@ from PyQt6.QtWidgets import QMessageBox, QFileDialog
 from main_window import Ui_MainWindow
 import command as cmd
 import conf
+import device
 
 NCH = 2
 
@@ -49,6 +50,8 @@ class DataViewControl:
         self.ui.comboBox_show.currentIndexChanged.connect(self.comboBox_show_changed)
         self.ui.action_OpenFile.triggered.connect(self.action_openfile)
         self.ui.checkBox_flashdata.stateChanged.connect(self.checkBox_flashdata_stateChanged)
+        self.ui.menu_device.aboutToShow.connect(self.update_device_list)
+        self.ui.menu_device.triggered.connect(self.menu_device_triggered)
 
     def update_wave(self):
         if self.ui.checkBox_raw.isChecked():
@@ -191,3 +194,27 @@ class DataViewControl:
                 self.timer_plot.stop()
                 self.rec.open_gzip(path[0])
                 self.update_curve()
+
+    def update_device_list(self):
+        ser = device.get_serials()
+        if len(ser) == 0:
+            ser = ['没有设备']
+        acts = self.ui.menu_device.actions()
+        if len(acts) >= 3 and len(acts) == len(ser)+2:
+            for a, b in zip(acts[2:], ser):
+                if a.text() != b:
+                    break
+            else:
+                return
+        for a in acts[2:]:
+            self.ui.menu_device.removeAction(a)
+        for b in ser:
+            self.ui.menu_device.addAction(b)
+
+    def menu_device_triggered(self, act):
+        text = act.text()
+        if text == '断开连接':
+            self.dev.ser = None
+        elif text[:8] == '/dev/tty':
+            self.dev.ser = device.open_serial(text)
+            self.dev.start()

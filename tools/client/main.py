@@ -24,7 +24,8 @@ import gui
 
 
 if __name__ == '__main__':
-    ser = device.get_serial()
+    sers = device.get_serials()
+    ser = device.open_serial(sers[0]) if len(sers)>0 else None
     app = QApplication([])
     win = QMainWindow()
     dev = device.Device(ser)
@@ -32,6 +33,7 @@ if __name__ == '__main__':
     dev.rec = rec
     dvc = gui.DataViewControl(win, dev, rec)
     dev.dvc = dvc
-    dev.start()
+    if ser is not None:
+        dev.start()
     win.show()
     app.exec()
