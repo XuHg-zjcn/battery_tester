@@ -21,6 +21,7 @@ import glob
 import math
 from PyQt6.QtCore import QThread
 import serial
+import time
 
 import conf
 import command as cmd
@@ -65,6 +66,22 @@ class Device(QThread):
         pack[4] = len(pack)-5
         self.ser.write(pack)
         print('send pack:', pack)
+
+    def calib(self, V_r, A_r, V_bias, A_bias, R_ohm, ts=None):
+        V_LSB = V_r/4096/256
+        A_LSB = A_r/4096/256
+        U_coef = round(V_LSB*1000*2**32)
+        I_coef = round(A_LSB*1000*2**32)
+        U_offset = round(V_bias/V_LSB)
+        I_offset = round(A_bias/A_LSB)
+        R_coef = round(R_ohm*A_LSB/V_LSB*2**32)
+        if ts is None:
+            ts = round(time.time())
+        data = b'Cabd' + struct.pack('<HHIIiiII', 1, 0, I_coef, U_coef, I_offset, U_offset, R_coef, ts)
+        pack = cmd.Cmd_Head + bytes([len(data)+1]) + cmd.Cmd_Calib + data
+        self.ser.write(pack)
+        print('send pack', pack)
+        return data
 
     def read_data(self, raddr, size):
         if self.ser is None:

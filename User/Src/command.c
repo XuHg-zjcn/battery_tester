@@ -19,6 +19,7 @@
 #include "smb.h"
 #include "flash.h"
 #include "conf.h"
+#include "calib.h"
 
 #define ARRLEN(x)          (sizeof(x)/sizeof(x[0]))
 #define CAST_U8ARR(x)      ((uint8_t *)(x))
@@ -72,6 +73,10 @@ void ExecCmd(uint8_t *buff)
       buff += 4;
       break;
 #endif
+    case Cmd_Calib:
+      Calib_update((const Calib_data *)(buff+1));
+      buff += 1+sizeof(Calib_data);
+      break;
     default:
       return;
     }

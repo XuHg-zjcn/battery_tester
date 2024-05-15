@@ -17,15 +17,16 @@
  *************************************************************************/
 #include "stm32f1xx_hal_flash.h"
 #include "usart.h"
+#include "flash_ch32v2.h"
 
-extern uint32_t _program_end;
+const uint32_t waddr0 = 0x08006100;
 uint32_t waddr;
 
 void Flash_Init()
 {
   //TODO: 不应该初始化时解锁,而是需要写入时解锁,写入后上锁,减少误操作可能
   HAL_FLASH_Unlock();
-  waddr = 0x08005000;
+  waddr = waddr0;
   while(*(uint32_t *)waddr != 0xe339e339 && waddr < 0x08010000){
     waddr += 256;
   }
@@ -40,5 +41,5 @@ void Flash_Read(uint16_t raddr, uint8_t size)
 
 void Flash_Erase()
 {
-  //TODO: here
+  FLASH_WCH_EraseFast(waddr0, 0x08010000-waddr0);
 }

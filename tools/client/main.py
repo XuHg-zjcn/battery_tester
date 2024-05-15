@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #########################################################################
 #  电池测试仪上位机测试程序
-#  Copyright (C) 2023  Xu Ruijun
+#  Copyright (C) 2023-2024  Xu Ruijun
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by

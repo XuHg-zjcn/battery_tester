@@ -8,6 +8,7 @@ Cmd_GetPara = b'\x04'
 Cmd_SMBWrite = b'\x05'
 Cmd_SMBRead = b'\x06'
 Cmd_FlashRead = b'\x07'
+Cmd_Calib = b'\x08'
 
 Mode_Stop = b'\x00'
 Mode_ConsCurr = b'\x01'

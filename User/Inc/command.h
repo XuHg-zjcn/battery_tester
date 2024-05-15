@@ -30,6 +30,7 @@ typedef enum{
   Cmd_SMBWrite = 5,
   Cmd_SMBRead = 6,
   Cmd_FlashRead = 7,
+  Cmd_Calib = 8,
 }CommandType;
 
 typedef enum{

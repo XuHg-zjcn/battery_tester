@@ -33,6 +33,7 @@
 #include "conf.h"
 #include "smb.h"
 #include "flash.h"
+#include "calib.h"
 
 #define LED1_GPIO_PORT GPIOC
 #define LED1_PIN       LL_GPIO_PIN_13
@@ -71,6 +72,7 @@ void main()
   USART_Init();
   //PID_Init(&pid, -400, 4000);
   OLED_Init();
+  Calib_Init();
   ADC_Init();
   SMB_Init();
 #if FLASH_DATAWRITE

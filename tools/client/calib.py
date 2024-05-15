@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #########################################################################
-#  电池测试仪读取数据测试程序
+#  电池测试仪校准测试程序
 #  Copyright (C) 2024  Xu Ruijun
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -19,17 +19,8 @@
 import device
 import time
 
-def find_end(data):
-    s = 0
-    while True:
-        x = data.find(b'\x39\xe3\x39\xe3', s)
-        if x%4 == 0 or x < 0:
-            break
-        else:
-            s = (x//4)*4+4
-    return x
 
-#TODO: 通过GUI界面操作，读出，保存，打开等操作
+#TODO: 通过GUI界面操作
 if __name__ == '__main__':
     sers = device.get_serials()
     ser = device.open_serial(sers[0])
@@ -37,18 +28,17 @@ if __name__ == '__main__':
     dev.set_para(report_ms=0)
     time.sleep(0.1)
     ser.read_all()
-    raddr = 0x6100
-    f = open('flash_data.bin', 'wb')
-    while True:
-        data = dev.read_data(raddr, 128)
-        x = find_end(data)
-        if x < 0:
-            raddr += 128
-            f.write(data)
-        else:
-            data_x = data[:x]
-            if len(data_x) > 0:
-                f.write(data_x)
-            break
-    print('got', f.tell(), 'bytes')
-    f.close()
+    V_r = float(input('电压量程(V):'))
+    A_r = float(input('电流量程(A):'))
+    V_bias = float(input('电压偏置(V):'))
+    A_bias = float(input('电流偏置(A):'))
+    R_ohm = float(input('电阻补偿(Ω):'))
+    data = dev.calib(V_r=V_r, A_r=A_r, V_bias=V_bias, A_bias=A_bias, R_ohm=R_ohm)
+    time.sleep(0.1)
+    data_r = dev.read_data(0x6000, len(data))
+    if data == data_r:
+        print('校验成功')
+    else:
+        print('校验出错')
+        print('write:', data)
+        print('read:', data_r)
