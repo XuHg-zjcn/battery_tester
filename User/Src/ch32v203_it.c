@@ -95,10 +95,10 @@ void DMA1_Channel1_IRQHandler(void)
       USART_Send(report_stop, sizeof(report_stop));
     }
     if(mode == Mode_ConsCurr){
-      MOS_Set(PID_update(&pid, (int32_t)sumI-curr));
+      MOS_Set(PID_update(&pid, (int32_t)sumI-curr_set));
     }else if(mode == Mode_CurrWave){
       int32_t wave_delta = I32xU32_HI32(sin32(wave_phase), wave_amp);
-      MOS_Set(PID_update(&pid, (int32_t)sumI-((int32_t)curr+wave_delta)));
+      MOS_Set(PID_update(&pid, (int32_t)sumI-((int32_t)curr_set+wave_delta)));
       wave_phase += exp32x(wave_logfcurr);
       wave_logfcurr += wave_logdfdt;
       if((wave_logdfdt>0 && (wave_logfcurr>>16)>=wave_logfmax) ||

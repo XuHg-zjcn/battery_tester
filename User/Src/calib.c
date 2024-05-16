@@ -84,6 +84,19 @@ int32_t sumU_to_mV(uint32_t sumU, uint32_t sumI)
   return I32xU32_HI32(sumU_to_noOffset(sumU, sumI), para.U_coef);
 }
 
+uint32_t mA_to_sumI(uint32_t mA)
+{
+  uint32_t noOffset_I = HU32dU32_U64(mA, para.I_coef);
+  return noOffset_I - para.I_offset;
+}
+
+uint32_t mV_mA_to_sumU(uint32_t mV, uint32_t mA)
+{
+  uint32_t noOffset_U = HU32dU32_U64(mV, para.U_coef);
+  uint32_t noOffset_I = HU32dU32_U64(mA, para.I_coef);
+  return noOffset_U - para.U_offset - U32xU32_HU32(noOffset_I, para.R_coef);
+}
+
 int32_t sumQ_to_mAh(int64_t sumQ)
 {
   return I32xU32_HI32(sumQ>>para.Q_sht, para.Q_coef);

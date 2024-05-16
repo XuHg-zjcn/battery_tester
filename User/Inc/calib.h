@@ -53,6 +53,8 @@ int32_t sumI_to_noOffset(uint32_t sumI);
 int32_t sumU_to_noOffset(uint32_t sumU, uint32_t sumI);
 int32_t sumI_to_mA(uint32_t sumI);
 int32_t sumU_to_mV(uint32_t sumU, uint32_t sumI);
+uint32_t mA_to_sumI(uint32_t mA);
+uint32_t mV_mA_to_sumU(uint32_t mV, uint32_t mA);
 int32_t sumQ_to_mAh(int64_t sumQ);
 int32_t sumE_to_mWh(int64_t sumE);
 void Calib_Init();

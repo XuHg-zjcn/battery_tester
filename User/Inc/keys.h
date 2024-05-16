@@ -1,6 +1,6 @@
 /*************************************************************************
- *  电池测试仪命令解析
- *  Copyright (C) 2023-2024  Xu Ruijun
+ *  电池测试仪按键相关
+ *  Copyright (C) 2024  Xu Ruijun
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,44 +15,23 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *************************************************************************/
-#ifndef COMMAND_H
-#define COMMAND_H
+#ifndef KEYS_H
+#define KEYS_H
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C"{
+#endif
 
-typedef enum{
-  Cmd_None = 0,
-  Cmd_SetMode = 1,
-  Cmd_GetMode = 2,
-  Cmd_SetPara = 3,
-  Cmd_GetPara = 4,
-  Cmd_SMBWrite = 5,
-  Cmd_SMBRead = 6,
-  Cmd_FlashRead = 7,
-  Cmd_Calib = 8,
-}CommandType;
+void Keys_Init();
+int Keys_IsKeyDown(uint32_t key);
+uint32_t Keys_WaitKeydown();
+uint32_t Keys_WaitRelease();
+uint32_t Keys_WaitDownRelease();
 
-typedef enum{
-  Mode_Stop = 0,
-  Mode_ConsCurr = 1,
-  Mode_ConsVolt = 2,
-  Mode_ConsPower = 3,
-  Mode_ConsResis = 4,
-  Mode_CurrWave = 5,
-}TestMode;
-
-extern volatile TestMode mode;
-extern volatile uint16_t paras[8];
-#define curr_set     paras[0]
-#define stop_vmin    paras[1]
-#define report_ms    paras[2] //此处毫秒不准，~0.9102ms
-#define wave_amp     paras[3]
-#define wave_logfmin paras[4]
-#define wave_logfmax paras[5]
-#define wave_logdfdt ((int16_t)paras[6])
-#define save_ms      paras[7]
-
-void ExecCmd(uint8_t *buff);
+#ifdef __cplusplus
+};
+#endif
 
 #endif

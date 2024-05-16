@@ -26,7 +26,7 @@ void PID_Init(PID_stat *pid, int32_t err0, int32_t output0)
 #endif
 
 #if PID_P_EN
-  pid->p_stat = CLIP(I32dU32_QSI64(output0-output, pid->p_k), pid->p_smin, pid->p_smax);
+  pid->p_stat = CLIP(HI32dU32_I64(output0-output, pid->p_k), pid->p_smin, pid->p_smax);
 #endif
 }
 
