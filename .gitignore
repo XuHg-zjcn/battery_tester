@@ -1,4 +1,4 @@
-# Copyright (C) 2022-2023 Xu Ruijun
+# Copyright (C) 2022-2024 Xu Ruijun
 #
 # Copying and distribution of this gitignore file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,6 +8,11 @@
 # build file
 /obj/
 __pycache__/
+*.elf
+*.hex
+*.bin
+/tools/other/convert
+/tools/client/main_window.py
 
 # vscode
 /.vscode
@@ -22,3 +27,5 @@ __pycache__/
 
 # data
 *.gz
+*.dat
+*.bak
