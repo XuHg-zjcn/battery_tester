@@ -19,6 +19,9 @@
 #define KEYS_H
 
 #include <stdint.h>
+#include "conf.h"
+
+#if KEYS_EN
 
 #ifdef __cplusplus
 extern "C"{
@@ -32,6 +35,8 @@ uint32_t Keys_WaitDownRelease();
 
 #ifdef __cplusplus
 };
+#endif
+
 #endif
 
 #endif

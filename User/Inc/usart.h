@@ -19,7 +19,7 @@
 #define USART_H
 
 #include <stdint.h>
-
+#include "conf.h"
 
 #define ARR_NELEM(x)           (sizeof(x)/sizeof(x[0]))
 
@@ -29,7 +29,10 @@ typedef struct{
   uint16_t resv;
 }DMAQueue_item;
 
+
+#if USART_PC_EN
 void USART_Init();
 void USART_Send(const uint8_t *data, uint32_t length);
+#endif
 
 #endif

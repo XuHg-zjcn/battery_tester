@@ -1,6 +1,10 @@
 #ifndef SMB_H
 #define SMB_H
 
+#include "conf.h"
+
+#if I2C_SMB_EN
+
 #ifdef __cplusplus
 extern "C"{
 #endif
@@ -11,6 +15,8 @@ void I2C_SMB_Read(uint16_t tlen, uint16_t rlen, uint8_t i2c_addr, const uint8_t 
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 #endif

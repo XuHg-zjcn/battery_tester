@@ -21,7 +21,18 @@
 #include "ch32v203x8.h"
 #include "ops.h"
 
+//外设配置选项
+#define LED_EN                0
+#define KEYS_EN               1
+#define I2C_OLED_EN           1
+#define I2C_SMB_EN            1
+#define USART_PC_EN           1
 #define FLASH_DATAWRITE       1
+//TODO: 添加SPI OLED支持
+//TODO: 添加软件模拟I2C支持
+
+//自动计算配置选项，请勿修改
+#define OLED_EN               I2C_OLED_EN
 
 //#define MIN(a, b) (((a)<(b))?(a):(b))
 
@@ -42,14 +53,22 @@
 #define NAMECONN_PWM_CHx(x)    x##1
 
 //显示屏I2C
+#if I2C_OLED_EN
 #define I2Cx_OLED             I2C2
 #define I2C_CLOCKSPEED_OLED   400000
 #define GPIO_PORT_OLED_SCL    GPIOB
 #define LL_GPIO_PIN_OLED_SCL  LL_GPIO_PIN_10
 #define GPIO_PORT_OLED_SDA    GPIOB
 #define LL_GPIO_PIN_OLED_SDA  LL_GPIO_PIN_11
+#endif
+
+#if LED_EN
+#define GPIO_PORT_LED1        GPIOC
+#define GPIO_PIN_LED1         LL_GPIO_PIN_13
+#endif
 
 //与BMS系统通信的I2C SMBus
+#if I2C_SMB_EN
 #define I2Cx_SMB              I2C1
 #define I2C_CLOCKSPEED_SMB    100000
 #define I2C_DUTYCYCLE_SMB     LL_I2C_DUTYCYCLE_2
@@ -63,8 +82,10 @@
 #define DMA1_Channelx_I2C_SMB_RX_IRQn   DMA1_Channel7_IRQn
 #define I2Cx_SMB_EV_IRQn                I2C1_EV_IRQn
 #define I2Cx_SMB_ER_IRQn                I2C1_ER_IRQn
+#endif
 
 //与电脑通信的串口
+#if USART_PC_EN
 #define USARTx_PC             USART1
 #define USART_BAUD            115200
 #define GPIO_PORT_USART_TX    GPIOA
@@ -74,6 +95,7 @@
 #define USARTx_PC_IRQn        USART1_IRQn
 #define LL_DMA_CHANNELx_USART_PC_TX     LL_DMA_CHANNEL_4
 #define DMA1_Channelx_USART_PC_TX_IRQn  DMA1_Channel4_IRQn
+#endif
 
 //仍然需要手动修改源代码 引脚Remap, 中断函数, ADC触发定时器
 #define IS_APB1PERIPH_ADDR(x)   (APB1PERIPH_BASE<=((uint32_t)(x)) && ((uint32_t)(x))<(APB1PERIPH_BASE + 32*0x400))

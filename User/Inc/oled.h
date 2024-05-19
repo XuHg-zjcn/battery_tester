@@ -18,6 +18,10 @@
 #ifndef OLED_H
 #define OLED_H
 
+#include "conf.h"
+
+#if OLED_EN
+
 #ifdef __cplusplus
 extern "C"{
 #endif
@@ -26,6 +30,8 @@ void OLED_Init();
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 #endif

@@ -59,6 +59,7 @@ void ExecCmd(uint8_t *buff)
         paras[buff[1]] = READU16_UNALIGN(&buff[2]);
       buff += 4;
       break;
+#if I2C_SMB_EN
     case Cmd_SMBWrite:
       I2C_SMB_Write(buff[1], buff[2], buff+3);
       buff += buff[1]+3; //长度不包含设备地址
@@ -67,6 +68,7 @@ void ExecCmd(uint8_t *buff)
       I2C_SMB_Read(buff[1], buff[2], buff[3], buff+4);
       buff += buff[1]+4;
       break;
+#endif
 #if FLASH_DATAWRITE
     case Cmd_FlashRead:
       Flash_Read(READU16_UNALIGN(&buff[1]), buff[3]);

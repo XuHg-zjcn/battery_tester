@@ -22,7 +22,7 @@
 #include "stm32f1xx_ll_dma.h"
 #include "conf.h"
 
-
+#if USART_PC_EN
 DMAQueue_item usart_txqueue[4];
 volatile int32_t usart_tx_begin = -1; //下一个发送任务,-1表示空
 volatile int32_t usart_tx_end = 0; //任务尾部+1
@@ -91,3 +91,5 @@ void USART_Send(const uint8_t *data, uint32_t length)
   }
   NVIC_EnableIRQ(DMA1_Channelx_USART_PC_TX_IRQn);
 }
+
+#endif

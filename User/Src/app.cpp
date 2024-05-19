@@ -40,6 +40,7 @@ const uint16_t curr_sets[] = {100, 200, 500, 1000, 1500, 2000, 2500};
 
 
 //显示测试中数据
+#if OLED_EN
 static void update_show_testing(SSD1306 *oled)
 {
   while(update_count%16 != 0);
@@ -64,8 +65,10 @@ static void update_show_testing(SSD1306 *oled)
   snprintf(tmp, 10, "%5d mWh", mWh);
   oled->text_5x7(tmp);
 }
+#endif
 
 //设置测试参数
+#if OLED_EN && KEYS_EN
 static void setting(SSD1306 *oled)
 {
   oled->setVHAddr(Horz_Mode, 0, 127, 4, 4);
@@ -142,9 +145,12 @@ static void setting(SSD1306 *oled)
   stop_vmin = mV_mA_to_sumU(volt_sets[val_i[1]], curr_sets[val_i[0]])/16;
   mode = Mode_ConsCurr;
 }
+#endif
 
+#if OLED_EN
 int app()
 {
+#if I2C_OLED_EN
   C_I2C ci2c;
   ci2c.Instance             = I2Cx_OLED;
   ci2c.Init.ClockSpeed      = I2C_CLOCKSPEED_OLED;
@@ -159,13 +165,17 @@ int app()
   C_I2C_Dev dev = C_I2C_Dev(&ci2c, Addr_OLED, I2C_MEMADD_SIZE_8BIT);
   dev.set_TransMode(TransTypeStru({TransBlocking, false, false, false, Wait_error}));
   SSD1306 oled = SSD1306(&dev);
+#endif
   oled.Init();
   oled.fill(0x00);
 
+#if KEYS_EN
   uint32_t ok_cnt = 0;
+#endif
   while(1){
     Delay_ms(100);
     update_show_testing(&oled);
+#if KEYS_EN
     if(Keys_IsKeyDown(GPIO_PIN_KEY_OK)){
       ok_cnt++;
     }
@@ -176,5 +186,12 @@ int app()
       setting(&oled);
       oled.fill(0x00);
     }
+#endif
   }
 }
+#else
+int app()
+{
+  while(1);
+}
+#endif

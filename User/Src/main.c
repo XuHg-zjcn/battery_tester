@@ -36,9 +36,6 @@
 #include "calib.h"
 #include "keys.h"
 
-#define LED1_GPIO_PORT GPIOC
-#define LED1_PIN       LL_GPIO_PIN_13
-
 uint16_t data[3];
 
 PID_stat pid = {
@@ -57,26 +54,38 @@ PID_stat pid = {
 
 void SystemClock_Config(void);
 
+#if LED_EN
 void LED_Init()
 {
-  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOC);
-  LL_GPIO_SetPinMode(LED1_GPIO_PORT, LED1_PIN, LL_GPIO_MODE_OUTPUT);
-  LL_GPIO_ResetOutputPin(LED1_GPIO_PORT, LED1_PIN);
+  ENABLE_CLOCK_BY_ADDR(GPIO_PORT_LED1);
+  LL_GPIO_SetPinMode(GPIO_PORT_LED1, GPIO_PIN_LED1, LL_GPIO_MODE_OUTPUT);
+  LL_GPIO_ResetOutputPin(GPIO_PORT_LED1, GPIO_PIN_LED1);
 }
+#endif
 
 void main()
 {
   SystemClock_Config();
   MOS_Init();
   Delay_Init();
+#if LED_EN
   LED_Init();
+#endif
+#if USART_PC_EN
   USART_Init();
+#endif
   //PID_Init(&pid, -400, 4000);
+#if OLED_EN
   OLED_Init();
+#endif
+#if KEYS_EN
   Keys_Init();
+#endif
   Calib_Init();
   ADC_Init();
+#if I2C_SMB_EN
   SMB_Init();
+#endif
 #if FLASH_DATAWRITE
   Flash_Init();
 #endif

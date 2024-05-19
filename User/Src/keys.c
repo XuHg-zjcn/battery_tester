@@ -21,6 +21,7 @@
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_hal_gpio.h"
 
+#if KEYS_EN
 void Keys_Init()
 {
   ENABLE_CLOCK_BY_ADDR(GPIO_PORT_KEYS);
@@ -70,3 +71,4 @@ uint32_t Keys_WaitDownRelease()
   }while(time < 90000); //10ms
   return key;
 }
+#endif

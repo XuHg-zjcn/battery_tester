@@ -21,6 +21,7 @@
 #include "stm32f1xx_ll_dma.h"
 #include "conf.h"
 
+#if I2C_SMB_EN
 uint8_t smb_buff[256];
 int16_t smb_rxbyte=0;
 uint8_t smb_addr;
@@ -132,3 +133,5 @@ void I2C_SMB_Read(uint16_t tlen, uint16_t rlen, uint8_t i2c_addr, const uint8_t 
   LL_I2C_AcknowledgeNextData(I2Cx_SMB, LL_I2C_ACK);
   LL_I2C_GenerateStartCondition(I2Cx_SMB);
 }
+
+#endif

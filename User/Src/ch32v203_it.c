@@ -35,12 +35,6 @@
 
 
 void DMA1_Channel1_IRQHandler(void) __attribute__((interrupt()));
-void USART1_IRQHandler(void) __attribute__((interrupt()));
-void DMA1_Channel4_IRQHandler(void) __attribute__((interrupt()));
-void DMA1_Channel6_IRQHandler(void) __attribute__((interrupt()));
-void DMA1_Channel7_IRQHandler(void) __attribute__((interrupt()));
-void I2C1_EV_IRQHandler(void) __attribute__((interrupt()));
-void I2C1_ER_IRQHandler(void) __attribute__((interrupt()));
 
 extern uint16_t adc_dma_buff[32*2];
 extern PID_stat pid;
@@ -51,20 +45,32 @@ int64_t sumQ, sumE = 0;
 uint32_t sumI256, sumU256;
 static uint16_t usart_data[3];
 
+extern uint32_t wave_logfcurr;
+extern int32_t wave_phase;
+
+#if USART_PC_EN
+void USART1_IRQHandler(void) __attribute__((interrupt()));
+void DMA1_Channel4_IRQHandler(void) __attribute__((interrupt()));
 static const uint8_t smb_report_head[] = {0xff, 0xfe, 'S', 'M', 'B', 'r'};
 static const uint8_t report_stop[6] = {0xff, 0xfe, 'S', 'T', 'O', 'P'};
 static const uint8_t cmdhead[4] = {0xAA, 'C', 'M', 'D'};
 static uint64_t usart_rx_last_ts = 0; //接收到最后一个字节的时间戳
 static uint32_t cmd_i = 0;
 static uint8_t rxbuff[64];
-extern uint32_t wave_logfcurr;
-extern int32_t wave_phase;
 extern DMAQueue_item usart_txqueue[4];
 extern volatile int32_t usart_tx_begin; //下一个发送任务,-1表示空
 extern volatile int32_t usart_tx_end; //任务尾部+1
+#endif
+
+#if I2C_SMB_EN
+void DMA1_Channel6_IRQHandler(void) __attribute__((interrupt()));
+void DMA1_Channel7_IRQHandler(void) __attribute__((interrupt()));
+void I2C1_EV_IRQHandler(void) __attribute__((interrupt()));
+void I2C1_ER_IRQHandler(void) __attribute__((interrupt()));
 extern int16_t smb_rxbyte;
 extern uint8_t smb_addr;
 extern uint8_t smb_buff[256];
+#endif
 
 #if FLASH_DATAWRITE
 void FLASH_IRQHandler(void) __attribute__((interrupt()));
@@ -92,7 +98,9 @@ void DMA1_Channel1_IRQHandler(void)
     }
     if(sumU < stop_vmin && mode != Mode_Stop){
       mode = Mode_Stop;
+#if USART_PC_EN
       USART_Send(report_stop, sizeof(report_stop));
+#endif
     }
     if(mode == Mode_ConsCurr){
       MOS_Set(PID_update(&pid, (int32_t)sumI-curr_set));
@@ -104,7 +112,9 @@ void DMA1_Channel1_IRQHandler(void)
       if((wave_logdfdt>0 && (wave_logfcurr>>16)>=wave_logfmax) ||
          (wave_logdfdt<0 && (wave_logfcurr>>16)<wave_logfmin)){
 	mode = Mode_Stop;
+#if USART_PC_EN
         USART_Send(report_stop, sizeof(report_stop));
+#endif
       }
     }else{
       MOS_Set(4096);
@@ -135,16 +145,19 @@ void DMA1_Channel1_IRQHandler(void)
 	}
 #endif
       }
+#if USART_PC_EN
       if(report_ms > 0 && (update_count/16)%report_ms == 0){
 	usart_data[0] = 0xffff;
 	usart_data[1] = sumI256/16;
 	usart_data[2] = sumU256/16;
 	USART_Send((uint8_t *)usart_data, sizeof(uint16_t)*3);
       }
+#endif
     }
   }
 }
 
+#if USART_PC_EN
 void USART1_IRQHandler(void)
 {
   if(LL_USART_IsActiveFlag_RXNE(USARTx_PC)){
@@ -197,8 +210,9 @@ void DMA1_Channel4_IRQHandler(void)
     }
   }
 }
+#endif
 
-//TODO: I2C的DMA中断函数
+#if I2C_SMB_EN
 void I2C1_EV_IRQHandler(void)
 {
   if(LL_I2C_IsActiveFlag_SB(I2C1)){
@@ -243,11 +257,14 @@ void DMA1_Channel7_IRQHandler(void)
     LL_DMA_ClearFlag_TC7(DMA1);
     LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNELx_I2C_SMB_RX);
     LL_I2C_GenerateStopCondition(I2Cx_SMB);
+#if USART_PC_EN
     USART_Send(smb_report_head, sizeof(smb_report_head));
     USART_Send(smb_buff, smb_rxbyte);
+#endif
     smb_rxbyte = 0;
   }
 }
+#endif
 
 #if FLASH_DATAWRITE
 void FLASH_IRQHandler(void)
