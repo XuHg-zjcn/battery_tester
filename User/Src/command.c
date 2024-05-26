@@ -75,10 +75,12 @@ void ExecCmd(uint8_t *buff)
       buff += 4;
       break;
 #endif
+#if FLASH_CALIB_EN
     case Cmd_Calib:
       Calib_update((const Calib_data *)(buff+1));
       buff += 1+sizeof(Calib_data);
       break;
+#endif
     default:
       return;
     }

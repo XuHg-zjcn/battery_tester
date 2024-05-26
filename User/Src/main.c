@@ -81,7 +81,9 @@ void main()
 #if KEYS_EN
   Keys_Init();
 #endif
+#if FLASH_CALIB_EN
   Calib_Init();
+#endif
   ADC_Init();
 #if I2C_SMB_EN
   SMB_Init();

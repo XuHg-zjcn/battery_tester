@@ -28,6 +28,7 @@
 #define I2C_SMB_EN            1
 #define USART_PC_EN           1
 #define FLASH_DATAWRITE       1
+#define FLASH_CALIB_EN        1  //将校准参数储存储存到FLASH，可通过串口修改
 //TODO: 添加SPI OLED支持
 //TODO: 添加软件模拟I2C支持
 

@@ -34,6 +34,7 @@ typedef struct{
   uint8_t E_sht;
 }Calib_para;
 
+#if FLASH_CALIB_EN
 static Calib_para para;
 
 //电流电压累加值和电量能量转换系数(取决于采样频率)
@@ -63,6 +64,19 @@ static inline uint32_t readu32_unalign(void *p)
     data |= (*(uint8_t *)(p+3))<<24;
     return data;
 }
+#else
+const Calib_para para = {
+  .I_coef = (uint32_t)(mA_LSB*(1ULL<<32)),
+  .U_coef = (uint32_t)(mV_LSB*(1ULL<<32)),
+  .I_offset = (int32_t)(mA_bias/mA_LSB),
+  .U_offset = (int32_t)(mV_bias/mV_LSB),
+  .R_coef = (uint32_t)(Ohm_Line*mA_LSB/mV_LSB*(1ULL<<32)),
+  .Q_sht = MAX((int32_t)(-floor(log2(mAh_LSB))-1), 0),
+  .Q_coef = (uint32_t)(mAh_LSB*(1ULL<<MAX((int32_t)(-floor(log2(mAh_LSB))-1), 0))*(1ULL<<32)),
+  .E_sht = MAX((int32_t)(-floor(log2(mWh_LSB))-1), 0),
+  .E_coef = (uint32_t)(mWh_LSB*(1ULL<<MAX((int32_t)(-floor(log2(mWh_LSB))-1), 0))*(1ULL<<32))
+};
+#endif
 
 int32_t sumI_to_noOffset(uint32_t sumI)
 {
@@ -107,6 +121,7 @@ int32_t sumE_to_mWh(int64_t sumE)
   return I32xU32_HI32(sumE>>para.E_sht, para.E_coef);
 }
 
+#if FLASH_CALIB_EN
 static void Calib_load()
 {
   const Calib_data *p = (const Calib_data *)calib_addr;
@@ -156,3 +171,4 @@ void Calib_Init()
   }
   Calib_load();
 }
+#endif

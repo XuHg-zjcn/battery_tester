@@ -57,8 +57,10 @@ uint32_t mA_to_sumI(uint32_t mA);
 uint32_t mV_mA_to_sumU(uint32_t mV, uint32_t mA);
 int32_t sumQ_to_mAh(int64_t sumQ);
 int32_t sumE_to_mWh(int64_t sumE);
+#if FLASH_CALIB_EN
 void Calib_Init();
 void Calib_update(const Calib_data *p);
+#endif
 
 #ifdef __cplusplus
 }
